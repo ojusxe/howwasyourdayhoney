@@ -1,51 +1,54 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { GhosttyConverter } from '../../../lib/ghosttyConverter';
+import { getGhosttyFFmpegWorker } from '../../../lib/ffmpegWorker';
 import { getJobStore } from '../../../lib/jobStore';
 import { ErrorHandler } from '../../../lib/errorHandler';
 import { getConfig } from '../../../lib/config';
 
 /**
- * Process pre-extracted frames using exact Ghostty logic
- * Frames are extracted client-side using FFmpeg.js, then processed server-side
+ * Refined video processing endpoint using exact Ghostty logic
+ * No user configuration options - optimized for highest quality output
  */
 export async function POST(request: NextRequest) {
   const jobStore = getJobStore();
+  const config = getConfig();
 
   try {
-    const body = await request.json();
-    const { frames } = body;
+    const formData = await request.formData();
+    const file = formData.get('video') as File;
 
-    if (!frames || !Array.isArray(frames) || frames.length === 0) {
+    if (!file) {
       return NextResponse.json(
-        { error: 'No frames provided. Frames must be extracted client-side.' },
+        { error: 'No video file provided' },
         { status: 400 }
       );
     }
 
-    console.log(`Received ${frames.length} frames for processing`);
-
-    // Validate frame format
-    const sampleFrame = frames[0];
-    if (!sampleFrame.imageData || !sampleFrame.index !== undefined) {
+    // Validate file
+    const ffmpegWorker = getGhosttyFFmpegWorker();
+    const validation = await ffmpegWorker.validateVideo(file);
+    
+    if (!validation.valid) {
       return NextResponse.json(
-        { error: 'Invalid frame format. Each frame must have imageData and index.' },
+        { error: validation.error },
         { status: 400 }
       );
     }
 
-    // Create processing job with Ghostty settings
+    // Create processing job with Ghostty settings (no user options)
     const jobId = jobStore.createJob({
-      frameRate: 24,
-      resolutionScale: 1.0,
-      characterSet: 'default',
-      colorMode: 'twotone',
+      // Fixed Ghostty settings for highest quality
+      frameRate: 24, // Ghostty's OUTPUT_FPS
+      resolutionScale: 1.0, // Always full resolution for best quality
+      characterSet: 'default', // Always use Ghostty characters
+      colorMode: 'twotone', // Ghostty uses blue/white detection
       background: 'transparent'
     });
 
-    console.log(`Created job ${jobId} for ${frames.length} frames`);
+    console.log(`Created job ${jobId} with Ghostty settings`);
 
     // Start processing asynchronously
-    processFramesGhostty(frames, jobId).catch(error => {
+    processVideoGhostty(file, jobId).catch(error => {
       console.error(`Job ${jobId} failed:`, error);
       const apiError = ErrorHandler.handleProcessingError(error);
       jobStore.updateJob(jobId, {
@@ -57,8 +60,8 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       jobId,
-      message: `Processing ${frames.length} frames with Ghostty converter`,
-      frameCount: frames.length,
+      message: 'Video processing started with Ghostty settings',
+      estimatedFrames: Math.ceil(config.maxVideoDuration * 24), // 24 FPS max
       settings: {
         fps: 24,
         columns: 100,
@@ -79,41 +82,54 @@ export async function POST(request: NextRequest) {
 }
 
 /**
- * Process pre-extracted frames using exact Ghostty converter logic
+ * Process video using exact Ghostty converter logic
  */
-async function processFramesGhostty(frames: any[], jobId: string): Promise<void> {
+async function processVideoGhostty(file: File, jobId: string): Promise<void> {
   const jobStore = getJobStore();
   const startTime = Date.now();
   let step = 'initialization';
   
   try {
-    console.log(`Starting Ghostty processing for job ${jobId} with ${frames.length} frames`);
+    console.log(`Starting Ghostty processing for job ${jobId}`);
     
-    // Initialize converter
+    // Initialize converter and FFmpeg worker
     step = 'converter_initialization';
     const converter = new GhosttyConverter();
+    const ffmpegWorker = getGhosttyFFmpegWorker();
+    await ffmpegWorker.initialize();
     
     jobStore.updateJob(jobId, {
       status: 'processing',
-      progress: 10,
+      progress: 10
+    });
+
+    // Extract frames using Ghostty settings
+    step = 'frame_extraction';
+    console.log(`Extracting frames with Ghostty settings for job ${jobId}`);
+    
+    const videoBuffer = await file.arrayBuffer();
+    
+    const frames = await ffmpegWorker.extractFrames(
+      videoBuffer,
+      (frameCount) => {
+        const progress = Math.min(50, 10 + (frameCount * 40) / 100); // Estimate max 100 frames
+        jobStore.updateJob(jobId, { progress });
+      }
+    );
+
+    console.log(`Extracted ${frames.length} frames for job ${jobId}`);
+    
+    jobStore.updateJob(jobId, {
+      status: 'processing',
+      progress: 50,
       totalFrames: frames.length
     });
 
-    // Convert frames to the expected format
-    step = 'frame_conversion';
-    const extractedFrames = frames.map((frame, index) => ({
-      index: frame.index || index,
-      timestamp: frame.timestamp || (index / 24), // 24 FPS
-      imageData: new Uint8Array(frame.imageData),
-      width: frame.width || 100,
-      height: frame.height || 44 // Approximate with font ratio
-    }));
-
     // Convert frames to ASCII using exact Ghostty logic
     step = 'ascii_conversion';
-    console.log(`Converting ${extractedFrames.length} frames to ASCII for job ${jobId}`);
+    console.log(`Converting ${frames.length} frames to ASCII for job ${jobId}`);
     
-    const asciiFrames = await converter.convertFramesToASCII(extractedFrames);
+    const asciiFrames = await converter.convertFramesToASCII(frames);
     
     // Post-process to match Ghostty output format
     step = 'post_processing';
@@ -121,7 +137,7 @@ async function processFramesGhostty(frames: any[], jobId: string): Promise<void>
       const processedContent = converter.postProcessASCII(frame.asciiContent, frame.colorData || []);
       
       // Update progress
-      const progress = 10 + ((index + 1) * 85) / asciiFrames.length;
+      const progress = 50 + ((index + 1) * 45) / asciiFrames.length;
       jobStore.updateJob(jobId, { progress });
       
       return {
@@ -147,7 +163,7 @@ async function processFramesGhostty(frames: any[], jobId: string): Promise<void>
         peakMemoryUsage: process.memoryUsage().heapUsed,
         processingSteps: [
           {
-            name: 'Frame Processing',
+            name: 'Total Processing',
             startTime,
             endTime,
             duration: processingTime,
@@ -160,6 +176,9 @@ async function processFramesGhostty(frames: any[], jobId: string): Promise<void>
 
     console.log(`Job ${jobId} completed successfully in ${processingTime}ms`);
     console.log(`Generated ${processedFrames.length} ASCII frames with Ghostty quality`);
+
+    // Cleanup
+    await ffmpegWorker.cleanup();
 
   } catch (error) {
     console.error(`Job ${jobId} failed at step ${step}:`, error);
