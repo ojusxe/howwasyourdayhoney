@@ -1,0 +1,77 @@
+.link {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+  & svg {
+    margin-left: 4px;
+    & path {
+      transition-duration: 0.1s;
+      transition-timing-function: ease-in-out;
+    }
+  }
+  &:hover {
+    text-decoration: underline;
+    & svg.externalLinkIcon {
+      /* Note: This is targeting the arrow paths. It's possible
+      that the path order changes and this breaks, but it seems
+      unlikely enough to justify adding this nice polish. */
+      & path:not(:first-of-type) {
+        transform: translate(2px, -2px);
+      }
+    }
+  }
+  &.weightLight {
+    font-weight: 400;
+    & strong {
+      font-weight: 500;
+    }
+  }
+  &.weightRegular {
+    font-weight: 500;
+    & strong {
+      font-weight: 600;
+    }
+  }
+  &.weightMedium {
+    font-weight: 600;
+    & strong {
+      font-weight: 700;
+    }
+  }
+
+  & .icon {
+    margin-right: 6px;
+    display: flex;
+  }
+}
+
+.buttonLink {
+  display: flex;
+  justify-content: center;
+  &.brand {
+    --button-color: var(--brand-color);
+  }
+  &.neutral {
+    --button-color: var(--gray-3);
+  }
+  border: 1px solid var(--button-color);
+  &:hover {
+    background-color: var(--button-color);
+    text-decoration: none;
+  }
+
+  border-radius: 6px;
+  transition: background-color 0.15s;
+  &.small {
+    font-size: 14px;
+    padding: 4px 12px;
+  }
+  &.medium {
+    font-size: 15px;
+    padding: 6px 18px;
+  }
+  &.large {
+    font-size: 16px;
+    padding: 10px 34px;
+  }
+}

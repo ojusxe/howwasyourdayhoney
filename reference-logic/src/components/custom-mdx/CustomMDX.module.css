@@ -1,0 +1,91 @@
+.customMDX {
+  & > p {
+    margin: 0.8em 0;
+  }
+  & > ul,
+  & > ol {
+    padding-left: 42px;
+    margin: 16px 0;
+  }
+  & .image {
+    max-width: 100%;
+    border: 1px solid var(--gray-5);
+    margin: 32px auto;
+    display: block;
+  }
+  & hr {
+    border: none;
+    border-bottom: 1px solid var(--gray-2);
+    margin: 42px 0;
+  }
+  & sup {
+    vertical-align: top;
+    font-size: 0.65em;
+    margin-left: 3px;
+    & > a {
+      scroll-margin-top: var(--header-height);
+      &:target {
+        border-radius: 15px;
+        animation: footnote-reference-highlight 1.5s ease-in-out;
+      }
+    }
+  }
+  & :global(.footnotes) {
+    & > ol > li {
+      &:target {
+        border-radius: 5px;
+        animation: footnote-highlight 1.5s ease-in-out;
+      }
+      & a {
+        vertical-align: top;
+        font-size: 0.8em;
+      }
+    }
+  }
+  & :global(.mermaid-container) {
+    margin: 32px auto;
+    border-radius: 6px;
+    overflow: hidden;
+    background: var(--gray-1);
+    border: 1px solid var(--gray-5);
+    display: block;
+  }
+  & :global(.mermaid-diagram *[fill]) {
+    fill: var(--brand-color) !important;
+  }
+  & :global(.mermaid-diagram *[color]) {
+    color: var(--brand-color) !important;
+  }
+  & :global(.mermaid-diagram) * {
+    color: white !important;
+  }
+  & :global(.mermaid-diagram svg) * {
+    fill: white !important;
+  }
+}
+
+@keyframes footnote-highlight {
+  from {
+    background-color: color-mix(in srgb, var(--brand-color) 70%, transparent);
+    padding: 5px 0;
+    margin: -5px 0;
+  }
+  to {
+    background-color: transparent;
+    padding: 0;
+    margin: 0;
+  }
+}
+
+@keyframes footnote-reference-highlight {
+  from {
+    background-color: color-mix(in srgb, var(--brand-color) 70%, transparent);
+    padding: 10px 15px;
+    margin: -10px -15px;
+  }
+  to {
+    background-color: transparent;
+    padding: 0px;
+    margin: 0px;
+  }
+}

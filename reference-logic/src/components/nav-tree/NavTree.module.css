@@ -1,0 +1,87 @@
+.navTree {
+  display: flex;
+  flex-direction: column;
+}
+
+ul.nodesList {
+  --node-font-size: 16px;
+  --node-padding: 12px 6px;
+  --node-border-radius: 5px;
+
+  display: flex;
+  flex-direction: column;
+  list-style: none;
+
+  & li {
+    margin-bottom: 2px;
+    width: 100%;
+
+    & .folderNode {
+      --svg-rotation: 0deg; /* Resets rotation when nested */
+      & button {
+        border-style: none;
+        background: none;
+        width: 100%;
+        text-align: left;
+        font-family: inherit;
+        font-weight: 500;
+        color: var(--gray-6);
+        font-size: var(--node-font-size);
+        line-height: var(--node-font-size);
+        padding: var(--node-padding);
+        border-radius: var(--node-border-radius);
+        cursor: pointer;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+
+        &:hover {
+          color: var(--gray-9);
+          background: var(--gray-2);
+        }
+      }
+
+      & svg {
+        transition: transform 0.2s;
+      }
+
+      &.isOpen {
+        --svg-rotation: -180deg;
+        & svg {
+          transform: rotate(var(--svg-rotation));
+        }
+      }
+
+      &>.children {
+        margin-left: 12px;
+      }
+    }
+
+    & .breakNode {
+      border: none;
+      border-bottom: 1px solid var(--gray-2);
+      margin: 20px 0;
+    }
+
+    & .linkNode {
+      display: block;
+      font-weight: 400;
+      color: var(--gray-5);
+      font-size: var(--node-font-size);
+      line-height: var(--node-font-size);
+      padding: var(--node-padding);
+      border-radius: var(--node-border-radius);
+      text-decoration: none;
+
+      &:hover {
+        background: var(--gray-2);
+        color: var(--gray-9);
+      }
+
+      &.active {
+        background: var(--brand-color);
+        color: var(--gray-9);
+      }
+    }
+  }
+}

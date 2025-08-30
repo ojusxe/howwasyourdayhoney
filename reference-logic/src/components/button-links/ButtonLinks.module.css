@@ -1,0 +1,27 @@
+.buttonLinks {
+  & ul {
+    --gap: 14px;
+    --cols: var(--large-size-columns);
+    @media(max-width: 950px) {
+      --cols: var(--small-size-columns);
+    }
+    @media(max-width: 784px) {
+      --cols: var(--large-size-columns);
+    }
+    @media(max-width: 650px) {
+      --cols: var(--small-size-columns);
+    }
+
+    padding: 0;
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--gap);
+
+    & li {
+      --flex-basis: calc((100% / var(--cols)) - (var(--gap) * (var(--cols) - 1)) / var(--cols));
+      flex-basis: var(--flex-basis);
+      max-width: var(--flex-basis);
+    }
+  }
+}

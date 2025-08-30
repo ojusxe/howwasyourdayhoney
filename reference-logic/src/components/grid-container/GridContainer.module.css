@@ -1,0 +1,14 @@
+.gridContainer {
+  padding-left: var(--desktop-padding);
+  padding-right: var(--desktop-padding);
+  max-width: var(--max-width);
+  position: relative;
+  width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+
+  @media(max-width: 768px) {
+    padding-left: var(--mobile-padding);
+    padding-right: var(--mobile-padding);
+  }
+}

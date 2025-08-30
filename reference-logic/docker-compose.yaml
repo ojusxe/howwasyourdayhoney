@@ -1,0 +1,10 @@
+version: '3'
+services:
+  website:
+    container_name: ghostty-website
+    build: .
+    image: ghostty-org/website
+    environment:
+      - PORT
+    ports:
+      - "${PORT}:${PORT}"

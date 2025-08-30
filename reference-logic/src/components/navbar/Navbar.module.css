@@ -1,0 +1,123 @@
+.navbar {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  height: var(--header-height);
+  background: var(--gray-0);
+  border-bottom: 1px solid var(--gray-2);
+
+  @media print {
+    display: none;
+  }
+
+  & .gridContainer {
+    height: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    & .desktopLinks {
+      display: flex;
+      align-items: center;
+      @media(max-width: 768px) {
+        display: none;
+      }
+
+      & .linkList {
+        list-style: none;
+        display: flex;
+        gap: 30px;
+        & a {
+          color: var(--gray-5);
+          text-decoration: none;
+          &.active {
+            text-decoration: underline;
+          }
+          &:hover {
+            color: var(--gray-9);
+          }
+        }
+      }
+
+      & .cta {
+        margin-left: 30px;
+      }
+    }
+  }
+
+  & .mobileContent {
+    display: none;
+    overflow: scroll;
+    &.mobileMenuOpen {
+      display: block;
+    }
+    background: var(--gray-0);
+    height: calc(100dvh - var(--header-height));
+    border-top: 1px solid var(--gray-2);
+    padding: 24px;
+  }
+}
+
+.menuToggle {
+  display: none;
+  @media(max-width: 768px) {
+    display: block;
+  }
+
+  /* reset appearance */
+  appearance: none;
+  background: none;
+  border: none;
+  cursor: pointer;
+  touch-action: manipulation;
+
+  /* make the clickable area really big since people seeing this are on mobile */
+  height: var(--header-height);
+  padding: 0 24px;
+  margin: 0 -24px 0 0;
+
+  & .hamburger {
+    position: relative;
+    width: 24px;
+    height: 1em;
+
+    & .hamburgerLayer {
+      position: absolute;
+      width: 100%;
+      height: 2px;
+      border-radius: 1px;
+      background: var(--white);
+
+      transition-property: transform, opacity;
+      transition-timing-function: ease-in-out;
+      transition-duration: 100ms;
+
+      @media (prefers-reduced-motion) {
+        transition: none;
+      }
+
+      &:nth-child(1) {
+        transform: translate(0, 0.0em) rotate(0);
+      }
+      &:nth-child(2) {
+        transform: translate(0, calc(0.5em - 1px)) rotate(0);
+      }
+      &:nth-child(3) {
+        transform: translate(0, calc(1.0em - 2px)) rotate(0);
+      }
+    }
+
+    &[data-open=true] .hamburgerLayer {
+      &:nth-child(1) {
+        transform: translate(0, 0.5em) rotate(45deg);
+      }
+      &:nth-child(2) {
+        transform: translate(0, 0.5em) rotate(30deg);
+        opacity: 0;
+      }
+      &:nth-child(3) {
+        transform: translate(0, 0.5em) rotate(-45deg);
+      }
+    }
+  }
+}

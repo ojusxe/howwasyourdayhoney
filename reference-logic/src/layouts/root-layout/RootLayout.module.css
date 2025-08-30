@@ -1,0 +1,40 @@
+.rootLayout {
+  font-family: var(--pretendard-std-variable);
+
+  & a {
+		color: var(--gray-9);
+  }
+
+  & table {
+    --color-border: var(--gray-2);
+    --color-header-border: var(--gray-3);
+    --color-fg: var(--gray-5);
+    --color-header-fg:var(--gray-7);
+
+    display: block;
+    table-layout: auto;
+    border-collapse: collapse;
+    margin: 32px 0;
+    overflow: auto;
+
+    & th, td {
+		  color: var(--color-fg);
+      text-align: start;
+      padding: 10px 16px 10px 2px;
+    }
+
+    & th {
+      font-weight: 600;
+      color: var(--color-header-fg);
+      vertical-align: bottom;
+    }
+
+    & tr {
+      border-bottom: 1px solid var(--color-border);
+    }
+
+    & thead tr {
+      border-bottom-color: var(--color-header-border);
+    }
+  }
+}

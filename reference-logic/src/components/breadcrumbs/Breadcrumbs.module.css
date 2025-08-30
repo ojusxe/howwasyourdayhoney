@@ -1,0 +1,20 @@
+.breadcrumbs {
+  display: flex;
+  flex-wrap: wrap;
+  list-style: none;
+
+  & li {
+    display: flex;
+    align-items: center;
+
+    & a {
+      &.active {
+        text-decoration: underline;
+      }
+    }
+
+    & .chevron {
+      margin: 0 10px;
+    }
+  }
+}

@@ -1,0 +1,84 @@
+.jumplinkHeader {
+  display: inline;
+  scroll-margin-top: var(--header-height);
+  &:target {
+    & .text {
+      animation: jumplink-highlight 1.5s ease-in-out;
+      border-radius: 8px;
+    }
+  }
+
+  & .content {
+    display: flex;
+    align-items: center;
+
+    &.h1{
+      margin-top: 68px;
+      margin-bottom: 26px;
+    }
+    &.h2{
+      margin-top: 52px;
+      margin-bottom: 20px;
+    }
+    &.h3{
+      margin-top: 39px;
+      margin-bottom: 15px;
+    }
+    &.h4{
+      margin-top: 34px;
+      margin-bottom: 13px;
+    }
+    &.h5{
+      margin-top: 26px;
+      margin-bottom: 10px;
+    }
+    &.h6{
+      margin-top: 23px;
+      margin-bottom: 9px;
+    }
+
+
+    & .jumplinkCopy {
+      margin-left: 16px;
+      transition: opacity .2s ease;
+      opacity: 0;
+    }
+    &:hover {
+      & .jumplinkCopy {
+        opacity: 1;
+      }
+    }
+  }
+
+  & + .jumplinkHeader {
+    & .content {
+      margin-top: 0;
+    }
+  }
+}
+
+.jumplinkCopy {
+  display: flex;
+  padding: 4px;
+  border: 1px solid var(--gray-4);
+  border-radius: 3px;
+
+  & .icon {
+    width: 16px;
+    height: 16px;
+    color: var(--gray-9);
+  }
+}
+
+@keyframes jumplink-highlight {
+  from {
+    background-color: color-mix(in srgb, var(--brand-color) 60%, transparent);
+    padding: 6px 16px;
+    margin: -6px -16px;
+  }
+  to {
+    background-color: transparent;
+    padding: 0px;
+    margin: 0px;
+  }
+}

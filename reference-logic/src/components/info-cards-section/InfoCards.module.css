@@ -1,0 +1,51 @@
+.infoCardsSection {
+  & .sectionTitle {
+    max-width: 772px;
+    margin-bottom: 100px;
+    @media(max-width: 768px) {
+      margin-bottom: 50px;
+    }
+  }
+}
+
+.infoCards {
+  --gap: 20px;
+  --cols: 3;
+  @media(max-width: 1100px) {
+    --cols: 2;
+  }
+  @media(max-width: 768px) {
+    --cols: 1;
+  }
+
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--gap);
+
+  & li {
+    flex-basis: calc((100% / var(--cols)) - (var(--gap) * (var(--cols) - 1)) / var(--cols));
+    border: 1px solid var(--gray-2);
+    border-radius: 10px;
+    padding: 28px;
+    display: flex;
+    flex-direction: column;
+
+    & .iconContainer {
+      display: flex;
+      background: var(--gray-1);
+      padding: 14px;
+      align-self: flex-start;
+      border-radius: 5px;
+      & > svg {
+        color: var(--brand-color);
+      }
+    }
+    & > h3 {
+      margin-top: 22px;
+    }
+    & > p {
+      margin-top: 8px;
+    }
+  }
+}

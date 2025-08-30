@@ -1,0 +1,165 @@
+.terminal {
+  --code-margin-top: 12px;
+  --padding: 7px;
+
+  /* Mac's traffic light button colors */
+  --color-sunset-orange: #ff605c;
+  --color-pastel-orange: #ffbd44;
+  --color-malachite: #00ca4e;
+
+  /* Adwaita colors (see https://gnome.pages.gitlab.gnome.org/libadwaita/doc/1.2/named-colors.html) */
+  --adw-headerbar-color: #303030;
+  --adw-headerbar-shade-color: rgba(0, 0, 0, 0.36);
+
+  &.fontXTiny {
+    --title-font-size: 12px;
+    --content-font-size: 6px;
+    --content-character-width: 3.6px;
+    --content-character-height: 9px;
+  }
+  &.fontTiny {
+    --title-font-size: 14px;
+    --content-font-size: 10px;
+    --content-character-width: 6px;
+    --content-character-height: 13.8px;
+  }
+  &.fontSmall {
+    --title-font-size: 14px;
+    --content-font-size: 12px;
+    --content-character-width: 7.2px;
+    --content-character-height: 16.6px;
+  }
+  &.fontMedium {
+    --title-font-size: 16px;
+    --content-font-size: 14px;
+    --content-character-width: 8.4px;
+    --content-character-height: 19.1px;
+  }
+  &.fontLarge {
+    --title-font-size: 16px;
+    --content-font-size: 16px;
+    --content-character-width: 9.6px;
+    --content-character-height: 21.5px;
+  }
+
+  width: calc((var(--columns) * var(--content-character-width)) + (2 * var(--padding)) + 2px);
+  height: calc((var(--rows) * var(--content-character-height)) + (2 * var(--padding)) + var(--control-size) + var(--code-margin-top) );
+  background: var(--gray-0);
+  border: 1px solid var(--gray-3);
+  border-radius: 10px;
+
+  display: flex;
+  flex-direction: column;
+
+  & .header {
+    display: grid;
+    align-items: center;
+    position: relative;
+    border-radius: 9px 9px 0px 0px;
+    padding: var(--padding);
+
+    grid-template: "start title end";
+    grid-template-columns: 1fr 1fr 1fr;
+
+    & .windowControls {
+      list-style: none;
+      display: flex;
+
+      &.start {
+        justify-content: start;
+        grid-area: start;
+      }
+
+      &.end {
+        justify-content: end;
+        grid-area: end;
+      }
+
+      & li {
+        width: var(--control-size);
+        height: var(--control-size);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+
+        &.circularButton {
+          background: var(--gray-3);
+          border-radius: var(--control-size);
+        }
+
+        & .icon {
+          transform: scale(75%);
+        }
+      }
+    }
+    & .title {
+      text-align: center;
+      font-size: var(--title-font-size);
+      grid-area: title;
+    }
+  }
+
+  & .content {
+    font-size: var(--content-font-size);
+    padding-top: var(--code-margin-top);
+    color: var(--gray-6);
+    word-wrap: break-word;
+    scroll-behavior: smooth;
+    overflow-y: scroll;
+    padding: var(--padding);
+
+    &.disableScrolling {
+      overflow-y: hidden;
+    }
+    & > div {
+      white-space: pre-wrap;
+      & :global(.b) {
+        color: var(--brand-color);
+      }
+    }
+  }
+
+  &.adwaita {
+    --control-size: 18px;
+    box-shadow: 0px 2px 1px var(--adw-headerbar-shade-color);
+
+    & .header {
+      background: var(--adw-headerbar-color);
+      border-bottom: 2px var(--adw-headerbar-shade-color);
+
+      & .windowControls {
+        gap: 12px;
+      }
+
+      & .title {
+        color: white;
+        font-weight: 800;
+      }
+      & .icon {
+        color: white;
+      }
+    }
+  }
+
+  &.macos {
+    --control-size: 12px;
+
+    & .header {
+      padding: var(--padding) 11px;
+    }
+
+    & .windowControls {
+      gap: 8px;
+
+      & li:first-child {
+        background: var(--color-sunset-orange);
+      }
+      & li:nth-child(2) {
+        background: var(--color-pastel-orange);
+      }
+      & li:last-child {
+        background: var(--color-malachite);
+      }
+    }
+  }
+}
