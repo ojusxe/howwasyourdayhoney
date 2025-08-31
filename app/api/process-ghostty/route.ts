@@ -1,13 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { GhosttyConverter } from '../../../lib/ghosttyConverter';
-import { getGhosttyFFmpegWorker } from '../../../lib/ffmpegWorker';
-import { getJobStore } from '../../../lib/jobStore';
-import { ErrorHandler } from '../../../lib/errorHandler';
-import { getConfig } from '../../../lib/config';
+import { getJobStore } from '@/lib/jobStore';
+import { processVideoWithNativeGhostty } from '@/lib/nativeGhosttyProcessor';
+import { ErrorHandler } from '@/lib/errorHandler';
+import { getConfig } from '@/lib/config';
 
 /**
- * Refined video processing endpoint using exact Ghostty logic
- * No user configuration options - optimized for highest quality output
+ * Native Ghostty video processing endpoint using system FFmpeg and ImageMagick
+ * Runs the original Ghostty bash script logic in Node.js
  */
 export async function POST(request: NextRequest) {
   const jobStore = getJobStore();
@@ -24,32 +23,28 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Validate file
-    const ffmpegWorker = getGhosttyFFmpegWorker();
-    const validation = await ffmpegWorker.validateVideo(file);
-    
-    if (!validation.valid) {
+    // Basic file validation
+    if (!file.type.startsWith('video/')) {
       return NextResponse.json(
-        { error: validation.error },
+        { error: 'Invalid file type. Please upload a video file.' },
         { status: 400 }
       );
     }
 
-    // Create processing job with Ghostty settings (no user options)
+    // Create processing job with Ghostty settings
     const jobId = jobStore.createJob({
-      // Fixed Ghostty settings for highest quality
       frameRate: 24, // Ghostty's OUTPUT_FPS
-      resolutionScale: 1.0, // Always full resolution for best quality
-      characterSet: 'default', // Always use Ghostty characters
-      colorMode: 'twotone', // Ghostty uses blue/white detection
+      resolutionScale: 1.0, // Always full resolution
+      characterSet: 'default', // Ghostty characters: ·~ox+=*%$@
+      colorMode: 'twotone', // Blue/white detection
       background: 'transparent'
     });
 
-    console.log(`Created job ${jobId} with Ghostty settings`);
+    console.log(`Created native Ghostty job ${jobId}`);
 
     // Start processing asynchronously
-    processVideoGhostty(file, jobId).catch(error => {
-      console.error(`Job ${jobId} failed:`, error);
+    processVideoNativeGhostty(file, jobId).catch(error => {
+      console.error(`Native Ghostty job ${jobId} failed:`, error);
       const apiError = ErrorHandler.handleProcessingError(error);
       jobStore.updateJob(jobId, {
         status: 'error',
@@ -60,19 +55,22 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       jobId,
-      message: 'Video processing started with Ghostty settings',
-      estimatedFrames: Math.ceil(config.maxVideoDuration * 24), // 24 FPS max
+      message: 'Video processing started with native Ghostty',
+      estimatedFrames: Math.ceil((config.maxVideoDuration || 10) * 24), // 24 FPS
       settings: {
+        processor: 'native_ghostty',
         fps: 24,
         columns: 100,
         fontRatio: 0.44,
         characters: '·~ox+=*%$@',
-        colorDetection: 'blue/white'
+        colorDetection: 'blue/white',
+        tools: 'system_ffmpeg_imagemagick'
       }
     });
 
   } catch (error) {
-    console.error('Process request failed:', error);
+    console.error('Native Ghostty process request failed:', error);
+    console.error('Error stack:', error instanceof Error ? error.stack : 'No stack trace');
     const apiError = ErrorHandler.handleProcessingError(error);
     return NextResponse.json(
       { error: ErrorHandler.getUserMessage(apiError) },
@@ -82,69 +80,60 @@ export async function POST(request: NextRequest) {
 }
 
 /**
- * Process video using exact Ghostty converter logic
+ * Process video using native Ghostty processor (system FFmpeg + ImageMagick)
  */
-async function processVideoGhostty(file: File, jobId: string): Promise<void> {
+async function processVideoNativeGhostty(file: File, jobId: string): Promise<void> {
   const jobStore = getJobStore();
   const startTime = Date.now();
   let step = 'initialization';
   
   try {
-    console.log(`Starting Ghostty processing for job ${jobId}`);
+    console.log(`Starting native Ghostty processing for job ${jobId}`);
     
-    // Initialize converter and FFmpeg worker
-    step = 'converter_initialization';
-    const converter = new GhosttyConverter();
-    const ffmpegWorker = getGhosttyFFmpegWorker();
-    await ffmpegWorker.initialize();
+    jobStore.updateJob(jobId, {
+      status: 'processing',
+      progress: 5
+    });
+
+    // Convert file to buffer
+    step = 'file_conversion';
+    console.log(`Converting file to buffer for job ${jobId}`);
+    const videoBuffer = await file.arrayBuffer();
+    const buffer = Buffer.from(videoBuffer);
     
     jobStore.updateJob(jobId, {
       status: 'processing',
       progress: 10
     });
 
-    // Extract frames using Ghostty settings
-    step = 'frame_extraction';
-    console.log(`Extracting frames with Ghostty settings for job ${jobId}`);
+    // Process with native Ghostty processor
+    step = 'native_processing';
+    console.log(`Running native Ghostty processor for job ${jobId}`);
     
-    const videoBuffer = await file.arrayBuffer();
+    const result = await processVideoWithNativeGhostty(buffer);
     
-    const frames = await ffmpegWorker.extractFrames(
-      videoBuffer,
-      (frameCount) => {
-        const progress = Math.min(50, 10 + (frameCount * 40) / 100); // Estimate max 100 frames
-        jobStore.updateJob(jobId, { progress });
-      }
-    );
+    if (!result.success) {
+      throw new Error(result.error || 'Native Ghostty processing failed');
+    }
 
-    console.log(`Extracted ${frames.length} frames for job ${jobId}`);
+    console.log(`Native Ghostty processing completed: ${result.frames.length} frames`);
     
     jobStore.updateJob(jobId, {
       status: 'processing',
-      progress: 50,
-      totalFrames: frames.length
+      progress: 90
     });
 
-    // Convert frames to ASCII using exact Ghostty logic
-    step = 'ascii_conversion';
-    console.log(`Converting ${frames.length} frames to ASCII for job ${jobId}`);
-    
-    const asciiFrames = await converter.convertFramesToASCII(frames);
-    
-    // Post-process to match Ghostty output format
-    step = 'post_processing';
-    const processedFrames = asciiFrames.map((frame, index) => {
-      const processedContent = converter.postProcessASCII(frame.asciiContent, frame.colorData || []);
-      
-      // Update progress
-      const progress = 50 + ((index + 1) * 45) / asciiFrames.length;
-      jobStore.updateJob(jobId, { progress });
-      
-      return {
-        ...frame,
-        asciiContent: processedContent
-      };
-    });
+    // Format frames for the frontend
+    step = 'frame_formatting';
+    const formattedFrames = result.frames.map((frameContent, index) => ({
+      index: index,
+      frameNumber: index + 1,
+      asciiContent: frameContent,
+      timestamp: (index / 24) * 1000, // Convert to milliseconds
+      width: 100, // Ghostty's OUTPUT_COLUMNS
+      height: Math.ceil(frameContent.split('\n').length), // Count lines
+      colorData: [] // Color data is already embedded in HTML spans
+    }));
 
     // Complete the job
     const endTime = Date.now();
@@ -153,17 +142,18 @@ async function processVideoGhostty(file: File, jobId: string): Promise<void> {
     jobStore.updateJob(jobId, {
       status: 'complete',
       progress: 100,
-      frames: processedFrames,
+      frames: formattedFrames,
+      totalFrames: formattedFrames.length,
       completedAt: new Date(),
       performanceMetrics: {
         conversionTime: processingTime,
         memoryUsage: process.memoryUsage().heapUsed,
-        frameCount: processedFrames.length,
-        averageFrameTime: processingTime / processedFrames.length,
+        frameCount: formattedFrames.length,
+        averageFrameTime: processingTime / formattedFrames.length,
         peakMemoryUsage: process.memoryUsage().heapUsed,
         processingSteps: [
           {
-            name: 'Total Processing',
+            name: 'Native Ghostty Processing',
             startTime,
             endTime,
             duration: processingTime,
@@ -174,19 +164,17 @@ async function processVideoGhostty(file: File, jobId: string): Promise<void> {
       }
     });
 
-    console.log(`Job ${jobId} completed successfully in ${processingTime}ms`);
-    console.log(`Generated ${processedFrames.length} ASCII frames with Ghostty quality`);
-
-    // Cleanup
-    await ffmpegWorker.cleanup();
+    console.log(`Native Ghostty job ${jobId} completed successfully in ${processingTime}ms`);
+    console.log(`Generated ${formattedFrames.length} ASCII frames using native tools`);
 
   } catch (error) {
-    console.error(`Job ${jobId} failed at step ${step}:`, error);
+    console.error(`Native Ghostty job ${jobId} failed at step ${step}:`, error);
+    console.error('Error details:', error instanceof Error ? error.stack : error);
     const apiError = ErrorHandler.handleProcessingError(error);
     
     jobStore.updateJob(jobId, {
       status: 'error',
-      error: `Processing failed at ${step}: ${ErrorHandler.getUserMessage(apiError)}`,
+      error: `Native processing failed at ${step}: ${ErrorHandler.getUserMessage(apiError)}`,
       completedAt: new Date()
     });
 

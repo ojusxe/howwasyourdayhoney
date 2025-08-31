@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import Link from 'next/link';
 
 export default function Header() {
@@ -7,9 +8,15 @@ export default function Header() {
         <div className="flex justify-between items-center py-4">
           <Link 
             href="/" 
-            className="text-xl font-semibold text-gray-900 hover:text-gray-700 transition-colors"
+            className=""
           >
-            ASCII Frame Generator
+            <Image
+              src="/hwydh.png"
+              alt="ASCII Frame Generator"
+              width={240}
+              height={32}
+              className="inline-block"
+            />
           </Link>
           <nav>
             <Link 

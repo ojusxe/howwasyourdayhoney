@@ -47,14 +47,19 @@ export class GhosttyConverter {
    * Convert a single extracted frame to ASCII
    */
   private async convertSingleFrame(frame: ExtractedFrame): Promise<ASCIIFrame> {
+    console.log(`[Ghostty] Converting frame ${frame.index}, original size: ${frame.width}x${frame.height}`);
+    
     // Create ImageData from PNG buffer
     const imageData = await this.createImageDataFromPNG(frame.imageData);
+    console.log(`[Ghostty] Decoded PNG: ${imageData.width}x${imageData.height}`);
     
     // Scale image to proper ASCII dimensions with font ratio correction
     const scaledImageData = this.scaleImageForASCII(imageData);
+    console.log(`[Ghostty] Final dimensions: ${scaledImageData.width}x${scaledImageData.height}`);
     
     // Convert to ASCII using exact Ghostty pixel_for() logic
     const { asciiContent, colorData } = this.convertPixelsToASCII(scaledImageData);
+    console.log(`[Ghostty] Generated ${asciiContent.split('\n').length} lines`);
     
     return {
       index: frame.index,
@@ -67,42 +72,71 @@ export class GhosttyConverter {
   }
 
   /**
-   * Scale image to proper ASCII dimensions with exact Ghostty font ratio correction
+   * Scale image to proper ASCII dimensions with exact Ghostty approach
+   * Step 1: Scale to OUTPUT_COLUMNS width (like FFmpeg scale=100:-2)
+   * Step 2: Apply font ratio correction (like ImageMagick resize)
    */
   private scaleImageForASCII(imageData: ImageData): ImageData {
     const { width: originalWidth, height: originalHeight, data: originalData } = imageData;
     
-    // Calculate new dimensions exactly like Ghostty
-    const newWidth = Math.min(this.OUTPUT_COLUMNS, originalWidth);
+    // Step 1: Scale to OUTPUT_COLUMNS width, maintain aspect ratio (like FFmpeg scale=100:-2)
+    const step1Width = this.OUTPUT_COLUMNS;
     const aspectRatio = originalHeight / originalWidth;
-    const newHeight = Math.floor(newWidth * aspectRatio * this.FONT_RATIO);
+    const step1Height = Math.floor(step1Width * aspectRatio);
     
-    console.log(`Scaling ${originalWidth}x${originalHeight} -> ${newWidth}x${newHeight}`);
+    console.log(`Step 1 - FFmpeg scaling: ${originalWidth}x${originalHeight} -> ${step1Width}x${step1Height}`);
     
-    // Create new image data with bilinear interpolation for better quality
-    const newData = new Uint8ClampedArray(newWidth * newHeight * 4);
+    // Create intermediate image data
+    const step1Data = new Uint8ClampedArray(step1Width * step1Height * 4);
     
-    for (let y = 0; y < newHeight; y++) {
-      for (let x = 0; x < newWidth; x++) {
+    for (let y = 0; y < step1Height; y++) {
+      for (let x = 0; x < step1Width; x++) {
         // Map to original coordinates
-        const srcX = (x / newWidth) * originalWidth;
-        const srcY = (y / newHeight) * originalHeight;
+        const srcX = (x / step1Width) * originalWidth;
+        const srcY = (y / step1Height) * originalHeight;
         
-        // Bilinear interpolation for better quality
+        // Bilinear interpolation
         const pixel = this.bilinearInterpolation(originalData, originalWidth, originalHeight, srcX, srcY);
         
-        const destIndex = (y * newWidth + x) * 4;
-        newData[destIndex] = pixel[0];     // R
-        newData[destIndex + 1] = pixel[1]; // G
-        newData[destIndex + 2] = pixel[2]; // B
-        newData[destIndex + 3] = pixel[3]; // A
+        const destIndex = (y * step1Width + x) * 4;
+        step1Data[destIndex] = pixel[0];     // R
+        step1Data[destIndex + 1] = pixel[1]; // G
+        step1Data[destIndex + 2] = pixel[2]; // B
+        step1Data[destIndex + 3] = pixel[3]; // A
+      }
+    }
+    
+    // Step 2: Apply font ratio correction (like ImageMagick -resize "x$new_height"!)
+    // local new_height=$(echo "$FONT_RATIO * $image_height" | bc | jq '.|ceil')
+    const step2Width = step1Width; // Width stays the same
+    const step2Height = Math.ceil(step1Height * this.FONT_RATIO);
+    
+    console.log(`Step 2 - Font ratio correction: ${step1Width}x${step1Height} -> ${step2Width}x${step2Height}`);
+    
+    // Create final image data
+    const finalData = new Uint8ClampedArray(step2Width * step2Height * 4);
+    
+    for (let y = 0; y < step2Height; y++) {
+      for (let x = 0; x < step2Width; x++) {
+        // Map to step1 coordinates
+        const srcX = x; // Width doesn't change
+        const srcY = (y / step2Height) * step1Height;
+        
+        // Bilinear interpolation
+        const pixel = this.bilinearInterpolation(step1Data, step1Width, step1Height, srcX, srcY);
+        
+        const destIndex = (y * step2Width + x) * 4;
+        finalData[destIndex] = pixel[0];     // R
+        finalData[destIndex + 1] = pixel[1]; // G
+        finalData[destIndex + 2] = pixel[2]; // B
+        finalData[destIndex + 3] = pixel[3]; // A
       }
     }
     
     return {
-      data: newData,
-      width: newWidth,
-      height: newHeight,
+      data: finalData,
+      width: step2Width,
+      height: step2Height,
       colorSpace: imageData.colorSpace
     };
   }
@@ -204,7 +238,7 @@ export class GhosttyConverter {
     
     // Calculate luminance using exact Ghostty formula
     // local luminance=$(awk -v r="$r" -v g="$g" -v b="$b" 'BEGIN{print int((0.2126 * r + 0.7152 * g + 0.0722 * b) / 1)}')
-    const luminance = Math.floor((0.2126 * r + 0.7152 * g + 0.0722 * b));
+    const luminance = Math.floor((0.2126 * r + 0.7152 * g + 0.0722 * b) / 1);
     
     // Calculate Manhattan distances (exact Ghostty color_distance_from function)
     const blueDistance = this.colorDistanceFrom(rgb, this.BLUE);
@@ -213,9 +247,8 @@ export class GhosttyConverter {
     // Exact Ghostty logic branches
     if (blueDistance < this.BLUE_DISTANCE_TOLERANCE) {
       // Blue color detected
-      const scaledLuminance = Math.floor(
-        ((luminance - this.BLUE_MIN_LUMINANCE) * 9) / (this.BLUE_MAX_LUMINANCE - this.BLUE_MIN_LUMINANCE)
-      );
+      // local scaled_luminance=$(awk -v luminance="$luminance" -v min="$BLUE_MIN_LUMINANCE" -v max="$BLUE_MAX_LUMINANCE" 'BEGIN{print int((luminance - min) * 9 / (max - min))}')
+      const scaledLuminance = Math.floor(((luminance - this.BLUE_MIN_LUMINANCE) * 9) / (this.BLUE_MAX_LUMINANCE - this.BLUE_MIN_LUMINANCE));
       const clampedLuminance = Math.max(0, Math.min(9, scaledLuminance));
       return {
         char: this.CHARACTERS[clampedLuminance],
@@ -223,9 +256,8 @@ export class GhosttyConverter {
       };
     } else if (whiteDistance < this.WHITE_DISTANCE_TOLERANCE) {
       // White color detected
-      const scaledLuminance = Math.floor(
-        ((luminance - this.WHITE_MIN_LUMINANCE) * 9) / (this.WHITE_MAX_LUMINANCE - this.WHITE_MIN_LUMINANCE)
-      );
+      // local scaled_luminance=$(awk -v luminance="$luminance" -v min="$WHITE_MIN_LUMINANCE" -v max="$WHITE_MAX_LUMINANCE" 'BEGIN{print int((luminance - min) * 9 / (max - min))}')
+      const scaledLuminance = Math.floor(((luminance - this.WHITE_MIN_LUMINANCE) * 9) / (this.WHITE_MAX_LUMINANCE - this.WHITE_MIN_LUMINANCE));
       const clampedLuminance = Math.max(0, Math.min(9, scaledLuminance));
       return {
         char: this.CHARACTERS[clampedLuminance],

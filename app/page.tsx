@@ -130,9 +130,9 @@ export default function Home() {
     try {
       const formData = new FormData();
       formData.append("video", selectedFile);
-      formData.append("settings", JSON.stringify(settings));
+      // Note: /api/process-ghostty doesn't need settings as it uses fixed Ghostty configuration
 
-      const response = await fetch("/api/process", {
+      const response = await fetch("/api/process-ghostty", {
         method: "POST",
         body: formData,
       });
@@ -140,7 +140,7 @@ export default function Home() {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.message || "Processing failed");
+        throw new Error(data.error || data.message || "Processing failed");
       }
 
       // Start processing
@@ -148,7 +148,7 @@ export default function Home() {
         jobId: data.jobId,
         status: "pending",
         progress: 0,
-        totalFrames: data.totalFrames || 0,
+        totalFrames: data.estimatedFrames || data.totalFrames || 0,
         processedFrames: 0,
       });
 
