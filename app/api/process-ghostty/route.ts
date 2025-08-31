@@ -53,10 +53,15 @@ export async function POST(request: NextRequest) {
       });
     });
 
+    // Get more accurate frame estimate based on video duration if possible
+    // For now, use a conservative estimate based on typical video lengths
+    const estimatedFrames = 240; // Most videos will be around 10 seconds at 24fps
+    
     return NextResponse.json({
       jobId,
       message: 'Video processing started with native Ghostty',
-      estimatedFrames: Math.ceil((config.maxVideoDuration || 10) * 24), // 24 FPS
+      estimatedFrames,
+      totalFrames: estimatedFrames, // Add totalFrames for consistency
       settings: {
         processor: 'native_ghostty',
         fps: 24,
@@ -106,11 +111,18 @@ async function processVideoNativeGhostty(file: File, jobId: string): Promise<voi
       progress: 10
     });
 
-    // Process with native Ghostty processor
+    // Process with native Ghostty processor with progress tracking
     step = 'native_processing';
     console.log(`Running native Ghostty processor for job ${jobId}`);
     
-    const result = await processVideoWithNativeGhostty(buffer);
+    const result = await processVideoWithNativeGhostty(buffer, (progress: number, message: string) => {
+      // Update job progress in real-time
+      jobStore.updateJob(jobId, {
+        status: 'processing',
+        progress: Math.min(progress, 85) // Reserve 85-100% for final steps
+      });
+      console.log(`Job ${jobId}: ${progress}% - ${message}`);
+    });
     
     if (!result.success) {
       throw new Error(result.error || 'Native Ghostty processing failed');
@@ -135,7 +147,7 @@ async function processVideoNativeGhostty(file: File, jobId: string): Promise<voi
       colorData: [] // Color data is already embedded in HTML spans
     }));
 
-    // Complete the job
+    // Complete the job with ZIP download info
     const endTime = Date.now();
     const processingTime = endTime - startTime;
     
@@ -145,6 +157,8 @@ async function processVideoNativeGhostty(file: File, jobId: string): Promise<voi
       frames: formattedFrames,
       totalFrames: formattedFrames.length,
       completedAt: new Date(),
+      zipPath: result.zipPath, // Add ZIP path for download
+      frameFiles: result.frameFiles, // Add frame file paths
       performanceMetrics: {
         conversionTime: processingTime,
         memoryUsage: process.memoryUsage().heapUsed,
@@ -161,11 +175,14 @@ async function processVideoNativeGhostty(file: File, jobId: string): Promise<voi
             memoryAfter: process.memoryUsage().heapUsed
           }
         ]
-      }
+      },
+      statistics: result.statistics
     });
 
     console.log(`Native Ghostty job ${jobId} completed successfully in ${processingTime}ms`);
     console.log(`Generated ${formattedFrames.length} ASCII frames using native tools`);
+    console.log(`ZIP archive created: ${result.zipPath}`);
+    console.log(`Frame files: ${result.frameFiles.length} TXT files`);
 
   } catch (error) {
     console.error(`Native Ghostty job ${jobId} failed at step ${step}:`, error);

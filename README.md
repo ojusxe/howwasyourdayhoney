@@ -45,3 +45,9 @@ npm run test:watch
 # Build for production
 npm run build
 ```
+
+
+Video Upload → Frame Extraction → ASCII Conversion → TXT File Creation → ZIP Packaging → Download Ready
+      ↓              ↓                   ↓                 ↓                ↓              ↓
+   Validation    PNG Files         ASCII Frames      Individual TXT    ZIP Archive    Frontend
+                                                         Files                         Notification

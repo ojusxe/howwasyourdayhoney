@@ -172,20 +172,25 @@ export default function Home() {
         const includeFrames = !jobStatus?.frames && (jobStatus?.status === 'complete' || !jobStatus);
         const url = `/api/status?jobId=${jobId}${includeFrames ? '&includeFrames=true' : ''}`;
         
+        console.log(`Polling status for job: ${jobId}`);
         const response = await fetch(url);
         const status = await response.json();
 
         if (!response.ok) {
+          console.error(`Status API error for job ${jobId}:`, status);
           throw new Error(status.message || "Failed to get status");
         }
 
+        console.log(`Job ${jobId} status:`, status.status, `Progress: ${status.progress}%`);
         setJobStatus(status);
 
         if (status.status === "complete") {
+          console.log(`Job ${jobId} completed with ${status.processedFrames} frames`);
           setAppState("complete");
           clearInterval(interval);
           setStatusPollingInterval(null);
         } else if (status.status === "error") {
+          console.error(`Job ${jobId} failed:`, status.error);
           setError({
             type: ErrorType.PROCESSING_ERROR,
             message: status.error || "Processing failed",
@@ -196,10 +201,10 @@ export default function Home() {
           setStatusPollingInterval(null);
         }
       } catch (err) {
-        console.error("Status polling failed:", err);
+        console.error("Status polling failed for job", jobId, ":", err);
         setError({
           type: ErrorType.PROCESSING_ERROR,
-          message: "Failed to get processing status",
+          message: `Failed to get processing status for job ${jobId}. ${err instanceof Error ? err.message : ''}`,
           timestamp: new Date(),
         });
         setAppState("error");

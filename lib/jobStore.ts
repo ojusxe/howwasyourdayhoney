@@ -67,7 +67,14 @@ export class JobStore {
   updateJob(jobId: string, updates: Partial<ProcessingJob>): boolean {
     const job = this.jobs.get(jobId);
     
-    if (!job || this.isJobExpired(job)) {
+    if (!job) {
+      console.warn(`Attempted to update non-existent job: ${jobId}`);
+      return false;
+    }
+    
+    if (this.isJobExpired(job)) {
+      console.warn(`Attempted to update expired job: ${jobId}`);
+      this.deleteJob(jobId);
       return false;
     }
 
@@ -77,9 +84,11 @@ export class JobStore {
     // Set completion time if status changed to complete
     if (updates.status === 'complete' && !job.completedAt) {
       job.completedAt = new Date();
+      console.log(`Job ${jobId} marked as complete with ${job.frames?.length || 0} frames`);
     }
 
     this.jobs.set(jobId, job);
+    console.log(`Updated job ${jobId}: status=${job.status}, progress=${job.progress}%`);
     return true;
   }
 

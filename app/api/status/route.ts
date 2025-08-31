@@ -18,9 +18,13 @@ export async function GET(request: NextRequest) {
     const jobStore = getJobStore();
     const job = jobStore.getJob(jobId);
 
+    console.log(`Status API: Looking for job ${jobId}`);
+    console.log(`Available jobs:`, jobStore.getActiveJobs().map(j => j.id));
+
     if (!job) {
+      console.log(`Job ${jobId} not found or expired`);
       return NextResponse.json(
-        createError(ErrorType.VALIDATION_ERROR, 'Job not found or expired'),
+        createError(ErrorType.VALIDATION_ERROR, `Job not found or expired. JobId: ${jobId}`),
         { status: 404 }
       );
     }
@@ -35,6 +39,9 @@ export async function GET(request: NextRequest) {
       createdAt: job.createdAt,
       completedAt: job.completedAt,
       error: job.error,
+      zipPath: job.zipPath, // Include ZIP path for download
+      frameFiles: job.frameFiles?.length || 0, // Count of frame files
+      statistics: job.statistics, // Include processing statistics
       ...(includeFrames && job.status === 'complete' && job.frames.length > 0 ? {
         frames: job.frames.slice(0, 10) // Only include first 10 frames for preview
       } : {}),

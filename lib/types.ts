@@ -22,6 +22,13 @@ export interface ProcessingJob {
   totalFrames?: number;
   performanceMetrics?: PerformanceMetrics;
   optimizationRecommendations?: string[];
+  zipPath?: string; // Path to generated ZIP file
+  frameFiles?: string[]; // Array of frame file paths
+  statistics?: {
+    totalFrames: number;
+    processingTime: number;
+    averageFrameSize: number;
+  };
 }
 
 // Performance monitoring interfaces

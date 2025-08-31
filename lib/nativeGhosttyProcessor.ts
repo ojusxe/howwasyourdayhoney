@@ -2,6 +2,8 @@ import { spawn, exec } from 'child_process';
 import fs from 'fs/promises';
 import path from 'path';
 import { promisify } from 'util';
+import { ZipPackager } from './zipUtils';
+import { ASCIIFrame } from './types';
 
 const execAsync = promisify(exec);
 
@@ -10,6 +12,13 @@ export interface NativeGhosttyResult {
   estimatedFrames: number;
   success: boolean;
   error?: string;
+  zipPath?: string;
+  frameFiles: string[];
+  statistics: {
+    totalFrames: number;
+    processingTime: number;
+    averageFrameSize: number;
+  };
 }
 
 export class NativeGhosttyProcessor {
@@ -24,11 +33,16 @@ export class NativeGhosttyProcessor {
     this.magickPath = 'C:\\Users\\Ojus\\AppData\\Local\\Microsoft\\WindowsApps';
   }
 
-  async processVideo(videoBuffer: Buffer): Promise<NativeGhosttyResult> {
+  async processVideo(videoBuffer: Buffer, onProgress?: (progress: number, message: string) => void): Promise<NativeGhosttyResult> {
+    const startTime = Date.now();
+    let frameFiles: string[] = [];
+    
     try {
       // Create temporary working directory
       this.workingDir = path.join(process.cwd(), 'temp', `ghostty_${Date.now()}`);
       await fs.mkdir(this.workingDir, { recursive: true });
+
+      onProgress?.(5, 'Setting up workspace...');
 
       // Save video to temporary file
       const videoPath = path.join(this.workingDir, 'input.mp4');
@@ -37,13 +51,38 @@ export class NativeGhosttyProcessor {
       console.log(`Processing video: ${videoPath}`);
       console.log(`Working directory: ${this.workingDir}`);
 
-      // Use our custom video-to-terminal function
-      const frames = await this.videoToTerminal(videoPath);
+      onProgress?.(10, 'Extracting frames with FFmpeg...');
+
+      // Use our custom video-to-terminal function with progress tracking
+      const { frames, txtFiles } = await this.videoToTerminalWithFiles(videoPath, onProgress);
+      frameFiles = txtFiles;
+
+      onProgress?.(90, 'Creating ZIP archive...');
+
+      // Create ZIP file with ASCII frames
+      const zipPath = await this.createZipArchive(txtFiles, frames);
+
+      onProgress?.(95, 'Finalizing...');
+
+      const processingTime = Date.now() - startTime;
+      const averageFrameSize = frames.reduce((sum: number, frame: string) => sum + frame.length, 0) / frames.length;
+
+      console.log(`Generated ${frames.length} frames`);
+      console.log('Sample frame (first 200 chars):', frames[0] ? frames[0].substring(0, 200) : 'NO FRAMES');
+
+      onProgress?.(100, 'Processing complete!');
 
       return {
         frames,
         estimatedFrames: frames.length,
-        success: true
+        success: true,
+        zipPath,
+        frameFiles,
+        statistics: {
+          totalFrames: frames.length,
+          processingTime,
+          averageFrameSize: Math.round(averageFrameSize)
+        }
       };
 
     } catch (error) {
@@ -52,15 +91,21 @@ export class NativeGhosttyProcessor {
         frames: [],
         estimatedFrames: 0,
         success: false,
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
+        frameFiles,
+        statistics: {
+          totalFrames: 0,
+          processingTime: Date.now() - startTime,
+          averageFrameSize: 0
+        }
       };
     } finally {
-      // Cleanup
+      // Cleanup PNG files but keep TXT files and ZIP
       if (this.workingDir) {
         try {
-          await fs.rm(this.workingDir, { recursive: true, force: true });
+          await this.cleanupPngFiles();
         } catch (cleanupError) {
-          console.warn('Failed to cleanup working directory:', cleanupError);
+          console.warn('Cleanup failed:', cleanupError);
         }
       }
     }
@@ -137,11 +182,13 @@ export class NativeGhosttyProcessor {
         await execAsync(extractCmd, { env });
 
         // Step 2c: Parse the pixel data and convert to ASCII
+        console.log(`Converting ${frameFile} to ASCII...`);
         const asciiFrame = await this.convertPixelDataToAscii(textPath, {
           BLUE, BLUE_DISTANCE_TOLERANCE, BLUE_MIN_LUMINANCE, BLUE_MAX_LUMINANCE,
           WHITE, WHITE_DISTANCE_TOLERANCE, WHITE_MIN_LUMINANCE, WHITE_MAX_LUMINANCE
         });
 
+        console.log(`ASCII frame length: ${asciiFrame.length}, first 100 chars: ${asciiFrame.substring(0, 100)}`);
         frames.push(asciiFrame);
         
         // Cleanup intermediate files
@@ -264,9 +311,161 @@ export class NativeGhosttyProcessor {
       .replace(/8/g, '$')
       .replace(/9/g, '@');
   }
+
+  /**
+   * Enhanced video processing that creates TXT files and tracks progress
+   */
+  private async videoToTerminalWithFiles(videoPath: string, onProgress?: (progress: number, message: string) => void): Promise<{ frames: string[], txtFiles: string[] }> {
+    const frames: string[] = [];
+    const txtFiles: string[] = [];
+    
+    // Create directories
+    const frameImagesDir = path.join(this.workingDir, 'frame_images');
+    const asciiFramesDir = path.join(this.workingDir, 'ascii_frames');
+    await fs.mkdir(frameImagesDir, { recursive: true });
+    await fs.mkdir(asciiFramesDir, { recursive: true });
+
+    // Set up environment paths
+    const env = {
+      ...process.env,
+      PATH: `${this.ffmpegPath};${this.magickPath};${process.env.PATH}`
+    };
+
+    onProgress?.(15, 'Extracting frames with FFmpeg...');
+
+    // FFmpeg extraction
+    const ffmpegCmd = `ffmpeg -loglevel error -i "${videoPath}" -vf "scale=100:-2,fps=24" "${frameImagesDir}/frame_%04d.png"`;
+    
+    try {
+      await execAsync(ffmpegCmd, { env, cwd: this.workingDir });
+      console.log('FFmpeg extraction completed');
+    } catch (error) {
+      throw new Error(`FFmpeg failed: ${error}`);
+    }
+
+    // Get all PNG files
+    const frameFiles = await fs.readdir(frameImagesDir);
+    const pngFiles = frameFiles.filter(f => f.endsWith('.png')).sort();
+
+    console.log(`Processing ${pngFiles.length} frames...`);
+
+    const colorConfig = {
+      BLUE: [0, 0, 230],
+      BLUE_DISTANCE_TOLERANCE: 80,
+      BLUE_MIN_LUMINANCE: 50,
+      BLUE_MAX_LUMINANCE: 120,
+      WHITE: [215, 215, 215],
+      WHITE_DISTANCE_TOLERANCE: 120,
+      WHITE_MIN_LUMINANCE: 50,
+      WHITE_MAX_LUMINANCE: 255
+    };
+
+    // Process each frame
+    for (let i = 0; i < pngFiles.length; i++) {
+      const frameFile = pngFiles[i];
+      const framePath = path.join(frameImagesDir, frameFile);
+      
+      try {
+        // Update progress
+        const progress = 20 + Math.floor((i / pngFiles.length) * 65); // 20% to 85%
+        onProgress?.(progress, `Processing frame ${i + 1}/${pngFiles.length}...`);
+
+        // Squish the image
+        const imageHeight = await this.getImageHeight(framePath, env);
+        const newHeight = Math.ceil(0.44 * imageHeight); // Font ratio
+        
+        if (newHeight > 0 && !isNaN(newHeight)) {
+          const squishCmd = `magick "${framePath}" -resize "x${newHeight}!" "${framePath}"`;
+          await execAsync(squishCmd, { env });
+        }
+
+        // Extract pixel data
+        const textPath = path.join(frameImagesDir, frameFile.replace('.png', '_im.txt'));
+        const extractCmd = `magick "${framePath}" "${textPath}"`;
+        await execAsync(extractCmd, { env });
+
+        // Convert to ASCII
+        const asciiFrame = await this.convertPixelDataToAscii(textPath, colorConfig);
+        frames.push(asciiFrame);
+
+        // Save ASCII frame to TXT file
+        const frameNumber = frameFile.match(/frame_(\d+)\.png/)?.[1] || String(i + 1).padStart(4, '0');
+        const asciiFilePath = path.join(asciiFramesDir, `frame_${frameNumber}.txt`);
+        await fs.writeFile(asciiFilePath, asciiFrame, 'utf-8');
+        txtFiles.push(asciiFilePath);
+
+        // Clean up intermediate files
+        await fs.unlink(textPath);
+        
+        console.log(`Processed frame ${i + 1}/${pngFiles.length}: ${asciiFilePath}`);
+        
+      } catch (frameError) {
+        console.warn(`Failed to process frame ${frameFile}:`, frameError);
+      }
+    }
+
+    return { frames, txtFiles };
+  }
+
+  /**
+   * Create ZIP archive with ASCII TXT files
+   */
+  private async createZipArchive(txtFiles: string[], frames: string[]): Promise<string> {
+    const zipPackager = new ZipPackager();
+    
+    // Convert file paths to ASCIIFrame objects
+    const asciiFrames: ASCIIFrame[] = txtFiles.map((filePath, index) => ({
+      index,
+      frameNumber: index + 1,
+      asciiContent: frames[index] || '',
+      timestamp: (index / 24) * 1000, // 24 FPS
+      width: 100,
+      height: frames[index] ? frames[index].split('\n').length : 44,
+      colorData: []
+    }));
+
+    // Create ZIP
+    const zipBlob = await zipPackager.createZip(asciiFrames, {
+      frameRate: 24,
+      resolutionScale: 1.0,
+      characterSet: 'custom',
+      customCharacters: '·~ox+=*%$@',
+      colorMode: 'twotone',
+      twoToneColors: ['#0000e6', '#d7d7d7'],
+      background: 'transparent'
+    });
+
+    // Save ZIP to file
+    const zipPath = path.join(this.workingDir, 'ascii_frames.zip');
+    const zipBuffer = Buffer.from(await zipBlob.arrayBuffer());
+    await fs.writeFile(zipPath, zipBuffer);
+
+    console.log(`Created ZIP archive: ${zipPath}`);
+    return zipPath;
+  }
+
+  /**
+   * Clean up PNG files but keep TXT files and ZIP
+   */
+  private async cleanupPngFiles(): Promise<void> {
+    try {
+      const frameImagesDir = path.join(this.workingDir, 'frame_images');
+      const files = await fs.readdir(frameImagesDir);
+      
+      for (const file of files) {
+        if (file.endsWith('.png')) {
+          await fs.unlink(path.join(frameImagesDir, file));
+        }
+      }
+      
+      console.log('Cleaned up PNG files');
+    } catch (error) {
+      console.warn('Failed to cleanup PNG files:', error);
+    }
+  }
 }
 
-export async function processVideoWithNativeGhostty(videoBuffer: Buffer): Promise<NativeGhosttyResult> {
+export async function processVideoWithNativeGhostty(videoBuffer: Buffer, onProgress?: (progress: number, message: string) => void): Promise<NativeGhosttyResult> {
   const processor = new NativeGhosttyProcessor();
-  return processor.processVideo(videoBuffer);
+  return processor.processVideo(videoBuffer, onProgress);
 }
