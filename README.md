@@ -32,6 +32,50 @@ The ASCII conversion algorithm is inspired by Ghostty's terminal rendering appro
 - JSZip for archive creation
 - TailwindCSS for styling
 
+## System Dependencies
+
+This application requires FFmpeg and ImageMagick to be installed on your system for video processing.
+
+### Windows (using winget)
+
+```bash
+# Install FFmpeg
+winget install Gyan.FFmpeg
+
+# Install ImageMagick
+winget install ImageMagick.ImageMagick
+```
+
+### macOS (using Homebrew)
+
+```bash
+# Install FFmpeg
+brew install ffmpeg
+
+# Install ImageMagick
+brew install imagemagick
+```
+
+### Linux (Ubuntu/Debian)
+
+```bash
+# Install FFmpeg
+sudo apt update
+sudo apt install ffmpeg
+
+# Install ImageMagick
+sudo apt install imagemagick
+```
+
+### Verify Installation
+
+After installation, verify that both tools are available:
+
+```bash
+ffmpeg -version
+magick -version  # or 'convert -version' on older systems
+```
+
 ## Development
 
 Prerequisites: Node.js, pnpm, FFmpeg, ImageMagick
