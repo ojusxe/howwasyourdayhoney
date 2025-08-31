@@ -29,7 +29,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Return job status without sensitive data
+    // return job status without exposing sensitive data
     const response = {
       jobId: job.id,
       status: job.status,
@@ -39,11 +39,11 @@ export async function GET(request: NextRequest) {
       createdAt: job.createdAt,
       completedAt: job.completedAt,
       error: job.error,
-      zipPath: job.zipPath, // Include ZIP path for download
-      frameFiles: job.frameFiles?.length || 0, // Count of frame files
-      statistics: job.statistics, // Include processing statistics
+      zipPath: job.zipPath, // include zip path for download access
+      frameFiles: job.frameFiles?.length || 0, // count of generated frame files
+      statistics: job.statistics, // include processing statistics
       ...(includeFrames && job.status === 'complete' && job.frames.length > 0 ? {
-        frames: job.frames.slice(0, 10) // Only include first 10 frames for preview
+        frames: job.frames.slice(0, 10) // only first 10 frames for preview
       } : {}),
       performanceMetrics: job.performanceMetrics ? {
         conversionTime: Math.round(job.performanceMetrics.conversionTime),

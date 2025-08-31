@@ -1,4 +1,4 @@
-// Core conversion settings interface
+// interface for video conversion settings
 export interface ConversionSettings {
   frameRate: 12 | 24;
   resolutionScale: 0.5 | 0.75 | 1.0;
@@ -9,7 +9,7 @@ export interface ConversionSettings {
   background: 'transparent' | 'black' | 'white';
 }
 
-// Processing job status and data
+// processing job status and data container
 export interface ProcessingJob {
   id: string;
   status: 'pending' | 'processing' | 'complete' | 'error';
@@ -31,7 +31,7 @@ export interface ProcessingJob {
   };
 }
 
-// Performance monitoring interfaces
+// interfaces for performance monitoring and metrics
 export interface PerformanceMetrics {
   conversionTime: number;
   memoryUsage: number;
@@ -60,7 +60,7 @@ export interface ASCIIFrame {
   colorData?: ColorPixel[][];
 }
 
-// Color pixel for colored ASCII output
+// color pixel for colored ASCII output
 export interface ColorPixel {
   char: string;
   color: string;
@@ -68,7 +68,7 @@ export interface ColorPixel {
   colorClass?: string; // For Ghostty-style color classification
 }
 
-// Extracted frame from video
+// frame extracted from video source
 export interface ExtractedFrame {
   index: number;
   timestamp: number;
@@ -115,7 +115,7 @@ export interface DownloadRequest {
   jobId: string;
 }
 
-// Error handling types
+// error handling types
 export enum ErrorType {
   VALIDATION_ERROR = 'VALIDATION_ERROR',
   PROCESSING_ERROR = 'PROCESSING_ERROR',
@@ -202,7 +202,7 @@ export interface ErrorDisplayProps {
   onDismiss: () => void;
 }
 
-// Default values and constants
+// default values and application constants
 export const DEFAULT_SETTINGS: ConversionSettings = {
   frameRate: 12,
   resolutionScale: 0.75,

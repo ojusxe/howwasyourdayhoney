@@ -29,7 +29,7 @@ export default function SettingsPanel({
       <h3 className="text-lg font-semibold text-gray-900 mb-6">Conversion Settings</h3>
       
       <div className="space-y-6">
-        {/* Frame Rate */}
+        {/* Frame Rate - video ki speed control karta hai */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Frame Rate
@@ -52,7 +52,7 @@ export default function SettingsPanel({
           </div>
         </div>
 
-        {/* Resolution Scale */}
+        {/* Resolution Scale - controls output size and quality */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Resolution Scale
@@ -79,7 +79,7 @@ export default function SettingsPanel({
           </div>
         </div>
 
-        {/* Character Set */}
+        {/* Character Set - defines characters used for ASCII conversion */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Character Set
@@ -114,7 +114,7 @@ export default function SettingsPanel({
             {settings.characterSet === 'custom' && (
               <input
                 type="text"
-                placeholder="Enter custom characters (e.g., .oO@)"
+                placeholder="Apne custom characters enter karo (e.g., .oO@)"
                 value={settings.customCharacters || ''}
                 onChange={(e) => updateSetting('customCharacters', e.target.value)}
                 disabled={disabled}
@@ -125,7 +125,7 @@ export default function SettingsPanel({
           </div>
         </div>
 
-        {/* Color Mode */}
+        {/* Color Mode - ASCII output ki coloring style */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Color Mode
@@ -150,7 +150,7 @@ export default function SettingsPanel({
               </label>
             ))}
           </div>
-          
+          {/* Two-tone mode ke liye color pickers */}
           {settings.colorMode === 'twotone' && (
             <div className="mt-3 flex space-x-4">
               <div>
@@ -177,7 +177,7 @@ export default function SettingsPanel({
           )}
         </div>
 
-        {/* Background */}
+        {/* Background - controls background color for ASCII output */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Background

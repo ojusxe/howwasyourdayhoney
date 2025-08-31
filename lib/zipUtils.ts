@@ -16,19 +16,19 @@ export class ZipPackager {
   ): Promise<Blob> {
     const zip = new JSZip();
 
-    // Add frames to ZIP
+    // add frames to the zip package
     await this.addFramesToZip(zip, frames, options.frameFormat);
 
-    // Add README if requested
+    // include README if requested
     if (options.includeReadme) {
       const readmeContent = options.readmeContent || this.generateReadme(settings, frames.length);
       zip.file('README.md', readmeContent);
     }
 
-    // Add license attribution
+    // add license attribution for ghostty-inspired logic
     zip.file('LICENSE-ATTRIBUTION.txt', this.generateLicenseAttribution());
 
-    // Add frame metadata
+    // add conversion metadata as json
     zip.file('metadata.json', JSON.stringify({
       totalFrames: frames.length,
       settings,
@@ -36,7 +36,7 @@ export class ZipPackager {
       format: options.frameFormat
     }, null, 2));
 
-    // Generate ZIP blob
+    // generate compressed zip blob
     return await zip.generateAsync({
       type: 'blob',
       compression: 'DEFLATE',
@@ -64,15 +64,15 @@ export class ZipPackager {
       const filename = `frame_${frame.index.toString().padStart(4, '0')}`;
       
       if (format === 'txt') {
-        // Save as plain text file
+        // save as plain text file with ascii content
         framesFolder.file(`${filename}.txt`, frame.asciiContent);
         
-        // Save color data separately if available
+        // save color data separately if available
         if (frame.colorData) {
           framesFolder.file(`${filename}_colors.json`, JSON.stringify(frame.colorData, null, 2));
         }
       } else {
-        // Save as JSON with all metadata
+        // save as json with complete metadata
         const frameData = {
           index: frame.index,
           timestamp: frame.timestamp,

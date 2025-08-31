@@ -25,13 +25,13 @@ export default function ProgressBar({
   const getStatusText = () => {
     switch (status) {
       case 'idle':
-        return 'Ready to process';
+        return 'ready to process';
       case 'processing':
-        return `Processing frame ${currentFrame} of ${totalFrames}`;
+        return `processing frame ${currentFrame} of ${totalFrames}`;
       case 'complete':
-        return 'Processing complete!';
+        return 'processing complete!';
       case 'error':
-        return 'Processing failed';
+        return 'processing failed';
       default:
         return '';
     }
@@ -41,6 +41,7 @@ export default function ProgressBar({
     switch (status) {
       case 'processing':
         return (
+          // loading spinner for processing state
           <svg className="animate-spin w-5 h-5 text-blue-500" fill="none" viewBox="0 0 24 24">
             <circle 
               className="opacity-25" 
@@ -59,12 +60,14 @@ export default function ProgressBar({
         );
       case 'complete':
         return (
+          // success checkmark
           <svg className="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
           </svg>
         );
       case 'error':
         return (
+          // error cross mark
           <svg className="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
           </svg>
@@ -90,7 +93,7 @@ export default function ProgressBar({
         </div>
       </div>
 
-      {/* Progress Bar */}
+      {/* Progress Bar - main progress indicator */}
       <div className="mb-4">
         <div className="w-full bg-gray-200 rounded-full h-3">
           <div 
@@ -100,7 +103,7 @@ export default function ProgressBar({
         </div>
       </div>
 
-      {/* Status Text */}
+      {/* Status Text - displays current processing info */}
       <div className="flex justify-between items-center text-sm">
         <span className="text-gray-600">
           {message || getStatusText()}
@@ -113,40 +116,40 @@ export default function ProgressBar({
         )}
       </div>
 
-      {/* Processing Steps */}
+      {/* Processing Steps - shows detailed progress stages */}
       {status === 'processing' && (
         <div className="mt-4 space-y-2">
           <div className="flex items-center text-xs text-gray-500">
             <div className={`w-2 h-2 rounded-full mr-2 ${progress > 0 ? 'bg-green-500' : 'bg-gray-300'}`} />
-            Video uploaded and validated
+            video uploaded and validated
           </div>
           <div className="flex items-center text-xs text-gray-500">
             <div className={`w-2 h-2 rounded-full mr-2 ${progress > 10 ? 'bg-green-500' : progress > 0 ? 'bg-blue-500' : 'bg-gray-300'}`} />
-            Extracting frames from video
+            extracting frames from video
           </div>
           <div className="flex items-center text-xs text-gray-500">
             <div className={`w-2 h-2 rounded-full mr-2 ${progress > 50 ? 'bg-green-500' : progress > 10 ? 'bg-blue-500' : 'bg-gray-300'}`} />
-            Converting frames to ASCII
+            converting frames to ASCII
           </div>
           <div className="flex items-center text-xs text-gray-500">
             <div className={`w-2 h-2 rounded-full mr-2 ${progress >= 100 ? 'bg-green-500' : progress > 90 ? 'bg-blue-500' : 'bg-gray-300'}`} />
-            Packaging frames for download
+            packaging frames for download
           </div>
         </div>
       )}
 
-      {/* Error Message */}
+      {/* Error Message - displayed when processing fails */}
       {status === 'error' && message && (
         <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-md">
           <p className="text-sm text-red-700">{message}</p>
         </div>
       )}
 
-      {/* Success Message */}
+      {/* Success Message - shown when processing completes successfully */}
       {status === 'complete' && (
         <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-md">
           <p className="text-sm text-green-700">
-            Successfully converted {totalFrames} frames to ASCII art. Your download is ready!
+            successfully converted {totalFrames} frames to ASCII art! your download is ready!
           </p>
         </div>
       )}

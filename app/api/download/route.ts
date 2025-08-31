@@ -39,10 +39,10 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Create ZIP file
+    // create zip file from processed frames
     const zipPackager = getZipPackager();
     
-    // Validate frames before packaging
+    // validate frames before packaging to ensure integrity
     const validation = zipPackager.validateFrames(job.frames);
     if (!validation.valid) {
       console.error(`Frame validation failed for job ${jobId}:`, validation.errors);
@@ -57,11 +57,11 @@ export async function GET(request: NextRequest) {
       frameFormat: 'txt'
     });
 
-    // Generate filename
+    // generate timestamped filename for download
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
     const filename = `ascii-frames-${jobId}-${timestamp}.zip`;
 
-    // Set response headers for file download
+    // set response headers for file download
     const headers = new Headers();
     headers.set('Content-Type', 'application/zip');
     headers.set('Content-Disposition', `attachment; filename="${filename}"`);
@@ -70,8 +70,8 @@ export async function GET(request: NextRequest) {
     headers.set('Pragma', 'no-cache');
     headers.set('Expires', '0');
 
-    // Schedule job cleanup after successful download
-    // Give some time for the download to complete
+    // schedule job cleanup after successful download
+    // allow time for download to complete before cleanup
     setTimeout(() => {
       try {
         jobStore.deleteJob(jobId);
@@ -79,9 +79,9 @@ export async function GET(request: NextRequest) {
       } catch (error) {
         console.error(`Failed to cleanup job ${jobId}:`, error);
       }
-    }, 30000); // 30 seconds delay
+    }, 30000); // 30 second delay for download completion
 
-    // Return ZIP file as response
+    // return zip file as streaming response
     return new NextResponse(zipBlob.stream(), {
       status: 200,
       headers
@@ -97,7 +97,7 @@ export async function GET(request: NextRequest) {
 }
 
 /**
- * Handle HEAD requests for download info without generating the file
+ * handle HEAD requests for download info without generating file
  */
 export async function HEAD(request: NextRequest) {
   try {
@@ -119,7 +119,7 @@ export async function HEAD(request: NextRequest) {
       return new NextResponse(null, { status: 400 });
     }
 
-    // Estimate ZIP file size
+    // estimate zip file size for content-length header
     const estimatedSize = estimateZipSize(job.frames.length, job.settings);
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
     const filename = `ascii-frames-${jobId}-${timestamp}.zip`;
@@ -141,29 +141,29 @@ export async function HEAD(request: NextRequest) {
 }
 
 /**
- * Estimate ZIP file size based on frame count and settings
+ * estimate zip file size based on frame count and settings
  */
 function estimateZipSize(frameCount: number, settings: any): number {
-  // Base size for metadata and README
+  // base size for metadata and readme files
   let estimatedSize = 10000; // 10KB base
 
-  // Estimate per frame
+  // estimate size per frame based on resolution scale
   const avgFrameSize = settings.resolutionScale === 1.0 ? 2000 : 
                       settings.resolutionScale === 0.75 ? 1500 : 1000;
   
   estimatedSize += frameCount * avgFrameSize;
 
-  // Add color data if applicable
+  // add color data size if applicable
   if (settings.colorMode !== 'blackwhite') {
-    estimatedSize += frameCount * 1000; // Additional color data
+    estimatedSize += frameCount * 1000; // additional color data
   }
 
-  // Apply compression estimate (ZIP typically achieves 60-80% compression on text)
-  return Math.round(estimatedSize * 0.3); // Assume 70% compression
+  // apply compression estimate (zip typically achieves 60-80% compression on text)
+  return Math.round(estimatedSize * 0.3); // assume 70% compression ratio
 }
 
 /**
- * Create standardized error response
+ * create standardized error response object
  */
 function createError(type: ErrorType, message: string, details?: any): APIError {
   return {

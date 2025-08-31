@@ -66,6 +66,7 @@ export default function UploadArea({
           className="hidden"
         />
         
+        {/* main upload UI elements */}
         <div className="flex flex-col items-center space-y-4">
           <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center">
             <svg 
@@ -91,6 +92,7 @@ export default function UploadArea({
               Drag and drop or click to select
             </p>
             
+            {/* file format and size limitations */}
             <div className="text-xs text-gray-400 space-y-1">
               <p>Supported formats: {acceptedFormats.join(', ')}</p>
               <p>Maximum size: {formatFileSize(maxSize)}</p>
@@ -100,6 +102,7 @@ export default function UploadArea({
         </div>
       </div>
 
+      {/* upload progress indicator - only visible during upload */}
       {uploadProgress > 0 && uploadProgress < 100 && (
         <div className="mt-4">
           <div className="flex justify-between text-sm text-gray-600 mb-1">

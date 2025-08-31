@@ -28,7 +28,7 @@ export class NativeGhosttyProcessor {
 
   constructor() {
     this.workingDir = '';
-    // Set the Windows paths for FFmpeg and ImageMagick
+    // set ffmpeg and imagemagick paths for windows system
     this.ffmpegPath = 'C:\\Users\\Ojus\\AppData\\Local\\Microsoft\\WinGet\\Packages\\Gyan.FFmpeg_Microsoft.Winget.Source_8wekyb3d8bbwe\\ffmpeg-8.0-full_build\\bin';
     this.magickPath = 'C:\\Users\\Ojus\\AppData\\Local\\Microsoft\\WindowsApps';
   }
@@ -38,13 +38,13 @@ export class NativeGhosttyProcessor {
     let frameFiles: string[] = [];
     
     try {
-      // Create temporary working directory
+      // create temporary working directory
       this.workingDir = path.join(process.cwd(), 'temp', `ghostty_${Date.now()}`);
       await fs.mkdir(this.workingDir, { recursive: true });
 
       onProgress?.(5, 'Setting up workspace...');
 
-      // Save video to temporary file
+      // save video to temporary file
       const videoPath = path.join(this.workingDir, 'input.mp4');
       await fs.writeFile(videoPath, videoBuffer);
 
@@ -53,13 +53,13 @@ export class NativeGhosttyProcessor {
 
       onProgress?.(10, 'Extracting frames with FFmpeg...');
 
-      // Use our custom video-to-terminal function with progress tracking
+      // use custom video-to-terminal conversion with progress tracking
       const { frames, txtFiles } = await this.videoToTerminalWithFiles(videoPath, onProgress);
       frameFiles = txtFiles;
 
       onProgress?.(90, 'Creating ZIP archive...');
 
-      // Create ZIP file with ASCII frames
+      // create zip archive with ascii frames
       const zipPath = await this.createZipArchive(txtFiles, frames);
 
       onProgress?.(95, 'Finalizing...');
@@ -100,7 +100,7 @@ export class NativeGhosttyProcessor {
         }
       };
     } finally {
-      // Cleanup PNG files but keep TXT files and ZIP
+      // cleanup png files but keep txt files and zip
       if (this.workingDir) {
         try {
           await this.cleanupPngFiles();
@@ -116,7 +116,7 @@ export class NativeGhosttyProcessor {
     const OUTPUT_FPS = 24;
     const OUTPUT_COLUMNS = 100;
 
-    // Colors Used (from Ghostty script)
+    // use ghostty's color scheme for consistency
     const BLUE = [0, 0, 230];
     const BLUE_DISTANCE_TOLERANCE = 90;
     const BLUE_MIN_LUMINANCE = 10;
@@ -129,11 +129,11 @@ export class NativeGhosttyProcessor {
 
     const frames: string[] = [];
     
-    // Step 1: Generate frame images using FFmpeg
+    // step 1: FFmpeg se frame images generate karte hai
     const frameImagesDir = path.join(this.workingDir, 'frame_images');
     await fs.mkdir(frameImagesDir, { recursive: true });
 
-    // Set PATH to include our tools (Windows format)
+    // PATH set karte hai tools ke liye (windows format)
     const env = {
       ...process.env,
       PATH: `${this.ffmpegPath};${this.magickPath};${process.env.PATH}`
@@ -141,7 +141,7 @@ export class NativeGhosttyProcessor {
 
     console.log('Running FFmpeg to extract frames...');
     
-    // FFmpeg command: same as Ghostty script
+    // FFmpeg command: ghostty script jaisi
     const ffmpegCmd = `ffmpeg -loglevel error -i "${videoPath}" -vf "scale=${OUTPUT_COLUMNS}:-2,fps=${OUTPUT_FPS}" "${frameImagesDir}/frame_%04d.png"`;
     
     try {
@@ -151,7 +151,7 @@ export class NativeGhosttyProcessor {
       throw new Error(`FFmpeg failed: ${error}`);
     }
 
-    // Step 2: Process each frame
+    // step 2: har frame ko process karte hai
     const frameFiles = await fs.readdir(frameImagesDir);
     const pngFiles = frameFiles.filter(f => f.endsWith('.png')).sort();
 
@@ -161,7 +161,7 @@ export class NativeGhosttyProcessor {
       const framePath = path.join(frameImagesDir, frameFile);
       
       try {
-        // Step 2a: Squish the image using ImageMagick (font ratio correction)
+        // ImageMagick se image ko squish karte hai (font ratio correction)
         const imageHeight = await this.getImageHeight(framePath, env);
         const newHeight = Math.ceil(FONT_RATIO * imageHeight);
         
@@ -175,13 +175,13 @@ export class NativeGhosttyProcessor {
           await execAsync(squishCmd, { env });
         }
 
-        // Step 2b: Extract pixel data using ImageMagick
+        // ImageMagick se pixel data extract karte hai
         const textPath = path.join(frameImagesDir, frameFile.replace('.png', '_im.txt'));
         const extractCmd = `magick "${framePath}" "${textPath}"`;
         console.log(`Running extract command: ${extractCmd}`);
         await execAsync(extractCmd, { env });
 
-        // Step 2c: Parse the pixel data and convert to ASCII
+        // pixel data ko parse kar ke ASCII mein convert karte hai
         console.log(`Converting ${frameFile} to ASCII...`);
         const asciiFrame = await this.convertPixelDataToAscii(textPath, {
           BLUE, BLUE_DISTANCE_TOLERANCE, BLUE_MIN_LUMINANCE, BLUE_MAX_LUMINANCE,
@@ -191,7 +191,7 @@ export class NativeGhosttyProcessor {
         console.log(`ASCII frame length: ${asciiFrame.length}, first 100 chars: ${asciiFrame.substring(0, 100)}`);
         frames.push(asciiFrame);
         
-        // Cleanup intermediate files
+        // intermediate files ko cleanup kar dete hai
         await fs.unlink(framePath);
         await fs.unlink(textPath);
         

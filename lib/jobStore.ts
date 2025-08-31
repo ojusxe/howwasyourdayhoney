@@ -1,8 +1,8 @@
 import { ProcessingJob, ConversionSettings, JOB_TTL, MAX_CONCURRENT_JOBS } from './types';
 
 /**
- * In-memory job storage with TTL-based cleanup
- * Manages processing jobs ephemerally without persistence
+ * in-memory job storage with TTL-based cleanup
+ * manages jobs ephemerally without persistence
  */
 export class JobStore {
   private jobs: Map<string, ProcessingJob> = new Map();
@@ -17,10 +17,10 @@ export class JobStore {
   }
 
   /**
-   * Create a new processing job
+   * create new processing job with unique id
    */
   createJob(settings: ConversionSettings): string {
-    // Check concurrent job limit
+    // check concurrent job limit before creating new one
     const activeJobs = this.getActiveJobs();
     if (activeJobs.length >= this.maxConcurrentJobs) {
       throw new Error(`Maximum concurrent jobs limit reached (${this.maxConcurrentJobs})`);
@@ -43,7 +43,7 @@ export class JobStore {
   }
 
   /**
-   * Get job by ID
+   * retrieve job by its unique identifier
    */
   getJob(jobId: string): ProcessingJob | null {
     const job = this.jobs.get(jobId);
@@ -62,7 +62,7 @@ export class JobStore {
   }
 
   /**
-   * Update job with partial data
+   * update job with partial data, handling expiration
    */
   updateJob(jobId: string, updates: Partial<ProcessingJob>): boolean {
     const job = this.jobs.get(jobId);

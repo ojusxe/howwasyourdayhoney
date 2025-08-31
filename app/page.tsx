@@ -60,7 +60,7 @@ export default function Home() {
   const [statusPollingInterval, setStatusPollingInterval] =
     useState<NodeJS.Timeout | null>(null);
 
-  // Cleanup polling on unmount
+  // cleanup polling interval on component unmount
   useEffect(() => {
     return () => {
       if (statusPollingInterval) {
@@ -81,9 +81,9 @@ export default function Home() {
     (files: File[]) => {
       if (files.length === 0) return;
 
-      const file = files[0]; // Take only the first file
+      const file = files[0]; // take only the first file
 
-      // Validate file type
+      // validate file type against accepted formats
       const validFormats = ["video/mp4", "video/webm"];
       if (!validFormats.includes(file.type)) {
         setError({
@@ -94,7 +94,7 @@ export default function Home() {
         return;
       }
 
-      // Validate file size
+      // check file size limits
       if (file.size > MAX_FILE_SIZE) {
         setError({
           type: ErrorType.VALIDATION_ERROR,

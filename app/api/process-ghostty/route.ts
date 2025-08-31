@@ -5,8 +5,8 @@ import { ErrorHandler } from '@/lib/errorHandler';
 import { getConfig } from '@/lib/config';
 
 /**
- * Native Ghostty video processing endpoint using system FFmpeg and ImageMagick
- * Runs the original Ghostty bash script logic in Node.js
+ * native ghostty video processing endpoint using system ffmpeg and imagemagick
+ * runs original ghostty bash script logic in node.js environment
  */
 export async function POST(request: NextRequest) {
   const jobStore = getJobStore();
@@ -23,7 +23,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Basic file validation
+    // basic file validation
     if (!file.type.startsWith('video/')) {
       return NextResponse.json(
         { error: 'Invalid file type. Please upload a video file.' },
@@ -31,18 +31,18 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Create processing job with Ghostty settings
+    // create processing job with ghostty-specific settings
     const jobId = jobStore.createJob({
-      frameRate: 24, // Ghostty's OUTPUT_FPS
-      resolutionScale: 1.0, // Always full resolution
-      characterSet: 'default', // Ghostty characters: ·~ox+=*%$@
-      colorMode: 'twotone', // Blue/white detection
+      frameRate: 24, // ghostty's OUTPUT_FPS
+      resolutionScale: 1.0, // always full resolution
+      characterSet: 'default', // ghostty characters: ·~ox+=*%$@
+      colorMode: 'twotone', // blue/white detection
       background: 'transparent'
     });
 
     console.log(`Created native Ghostty job ${jobId}`);
 
-    // Start processing asynchronously
+    // start processing asynchronously in background
     processVideoNativeGhostty(file, jobId).catch(error => {
       console.error(`Native Ghostty job ${jobId} failed:`, error);
       const apiError = ErrorHandler.handleProcessingError(error);
@@ -53,9 +53,9 @@ export async function POST(request: NextRequest) {
       });
     });
 
-    // Get more accurate frame estimate based on video duration if possible
-    // For now, use a conservative estimate based on typical video lengths
-    const estimatedFrames = 240; // Most videos will be around 10 seconds at 24fps
+    // get more accurate frame estimate based on video duration if possible
+    // for now, use conservative estimate based on typical video lengths
+    const estimatedFrames = 240; // most videos will be around 10 seconds at 24fps
     
     return NextResponse.json({
       jobId,
