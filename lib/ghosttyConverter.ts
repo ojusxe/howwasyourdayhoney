@@ -46,6 +46,13 @@ export class GhosttyConverter {
   /**
    * Convert a single extracted frame to ASCII
    */
+  async convertFrame(frame: ExtractedFrame): Promise<ASCIIFrame> {
+    return this.convertSingleFrame(frame);
+  }
+
+  /**
+   * Convert a single extracted frame to ASCII
+   */
   private async convertSingleFrame(frame: ExtractedFrame): Promise<ASCIIFrame> {
     console.log(`[Ghostty] Converting frame ${frame.index}, original size: ${frame.width}x${frame.height}`);
     

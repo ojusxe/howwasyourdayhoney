@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getGhosttyFFmpegWorker } from '@/lib/ffmpegWorker';
+import { getServerFFmpegProcessor } from '@/lib/serverFFmpegProcessor';
+import { GhosttyConverter } from '@/lib/ghosttyConverter';
 import { ASCIIConverter } from '@/lib/asciiConverter';
 import { getJobStore } from '@/lib/jobStore';
 import { ConversionSettings, ProcessResponse, ErrorType, APIError } from '@/lib/types';
@@ -58,10 +60,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // For now, skip FFmpeg validation in server environment
-    // In production, you would use a server-side video processing library
-    console.log('Video validation skipped in server environment');
-
     // Create job
     const jobStore = getJobStore();
     let jobId: string;
@@ -114,7 +112,7 @@ export async function POST(request: NextRequest) {
 }
 
 /**
- * Background video processing function (simplified for server environment)
+ * Background video processing function with real video processing
  */
 async function processVideoAsync(
   jobId: string,
@@ -122,7 +120,6 @@ async function processVideoAsync(
   settings: ConversionSettings
 ): Promise<void> {
   const jobStore = getJobStore();
-  const asciiConverter = new ASCIIConverter();
   const resourceManager = ResourceManager.getInstance();
   const performanceMonitor = new PerformanceMonitor();
 
@@ -133,127 +130,138 @@ async function processVideoAsync(
     // Update job status
     jobStore.updateJob(jobId, { status: 'processing', progress: 0 });
 
-    // For demonstration purposes, create mock frames
-    // In production, you would use a server-side video processing library
-    performanceMonitor.startStep('Mock Frame Generation');
+    console.log(`[Job ${jobId}] Starting video processing...`);
     
-    const mockFrameCount = Math.floor(Math.random() * 20) + 10; // 10-30 frames
-    const asciiFrames = [];
-    const characterSet = asciiConverter.getCharacterSet(settings.characterSet, settings.customCharacters);
+    // Convert file to array buffer
+    const videoBuffer = await videoFile.arrayBuffer();
     
-    const conversionOptions = {
-      characterSet,
-      colorMode: settings.colorMode,
-      twoToneColors: settings.twoToneColors,
-      background: settings.background,
-      colorThreshold: 50
-    };
-
-    // Update total frames
-    jobStore.updateJob(jobId, { totalFrames: mockFrameCount });
-
-    // Generate mock ASCII frames with authentic Ghostty patterns
-    for (let i = 0; i < mockFrameCount; i++) {
-      // Create mock image data with exact Ghostty dimensions
-      const baseWidth = 100; // OUTPUT_COLUMNS=100 from Ghostty script
-      const baseHeight = Math.floor(baseWidth * 0.6); // Reasonable aspect ratio
-      const width = Math.floor(baseWidth * settings.resolutionScale);
-      const height = Math.floor(baseHeight * settings.resolutionScale * 0.44); // FONT_RATIO=".44"
-      const pixelCount = width * height;
-      const data = new Uint8ClampedArray(pixelCount * 4);
-
-      // Create patterns that demonstrate Ghostty's exact color detection
-      for (let j = 0; j < pixelCount; j++) {
-        const baseIndex = j * 4;
-        const x = j % width;
-        const y = Math.floor(j / width);
-        
-        let r, g, b;
-        
-        // Create animated blue regions (exact Ghostty blue: 0,0,230)
-        const blueWave = Math.sin((x * 0.1) + (i * 0.3)) * Math.cos((y * 0.1) + (i * 0.2));
-        if (blueWave > 0.3) {
-          // Vary the blue slightly to test distance tolerance
-          const blueVariation = Math.floor(Math.random() * 20) - 10; // ±10 variation
-          r = Math.max(0, Math.min(255, 0 + blueVariation));
-          g = Math.max(0, Math.min(255, 0 + blueVariation));
-          b = Math.max(0, Math.min(255, 230 + blueVariation));
-        }
-        // Create animated white regions (exact Ghostty white: 215,215,215)
-        else if (blueWave < -0.3) {
-          const whiteVariation = Math.floor(Math.random() * 30) - 15; // ±15 variation
-          r = Math.max(0, Math.min(255, 215 + whiteVariation));
-          g = Math.max(0, Math.min(255, 215 + whiteVariation));
-          b = Math.max(0, Math.min(255, 215 + whiteVariation));
-        }
-        // Create moving gradient patterns for other areas
-        else {
-          const gradientX = (x + i * 2) / width;
-          const gradientY = (y + i) / height;
-          const intensity = Math.floor(64 + 127 * Math.sin(gradientX * Math.PI) * Math.cos(gradientY * Math.PI));
-          r = intensity;
-          g = intensity;
-          b = intensity;
-        }
-        
-        data[baseIndex] = r;
-        data[baseIndex + 1] = g;
-        data[baseIndex + 2] = b;
-        data[baseIndex + 3] = 255; // A
+    // Check if we should use native tools or browser-based processing
+    const useNativeProcessing = typeof window === 'undefined'; // Server-side
+    
+    let extractedFrames;
+    
+    if (useNativeProcessing) {
+      console.log(`[Job ${jobId}] Using native FFmpeg processing`);
+      
+      const serverProcessor = getServerFFmpegProcessor();
+      
+      // Check if native tools are available
+      const toolsCheck = await serverProcessor.checkNativeToolsAvailability();
+      if (!toolsCheck.ffmpeg || !toolsCheck.imagemagick) {
+        throw new Error(toolsCheck.error || 'Required native tools not available');
       }
-
-      const mockImageData: ImageData = {
-        data,
-        width,
-        height,
-        colorSpace: 'srgb' as PredefinedColorSpace
-      };
-
-      // Convert to ASCII using exact Ghostty logic
-      const asciiFrame = asciiConverter.convertFrame(mockImageData, conversionOptions);
       
-      // Set frame metadata
-      asciiFrame.index = i;
-      asciiFrame.timestamp = i / settings.frameRate;
+      // Process video with progress tracking
+      extractedFrames = await serverProcessor.processVideo(
+        videoBuffer,
+        (current: number, total: number) => {
+          const progress = Math.floor((current / total) * 50); // First 50% for frame extraction
+          jobStore.updateJob(jobId, { 
+            progress, 
+            totalFrames: total,
+            status: 'processing'
+          });
+        }
+      );
       
-      asciiFrames.push(asciiFrame);
-      performanceMonitor.recordFrame();
-
-      // Update progress
-      const progress = ((i + 1) / mockFrameCount) * 100;
-      jobStore.updateJob(jobId, { progress });
-
-      // Add small delay to simulate processing time
-      await new Promise(resolve => setTimeout(resolve, 200));
+    } else {
+      console.log(`[Job ${jobId}] Using browser-based FFmpeg processing`);
+      
+      const ffmpegWorker = getGhosttyFFmpegWorker();
+      await ffmpegWorker.initialize();
+      
+      // Extract frames using FFmpeg.wasm
+      extractedFrames = await ffmpegWorker.extractFrames(
+        videoBuffer,
+        (current: number) => {
+          const progress = Math.floor((current / 100) * 50); // Estimate, will be updated
+          jobStore.updateJob(jobId, { 
+            progress,
+            status: 'processing'
+          });
+        }
+      );
     }
+
+    console.log(`[Job ${jobId}] Extracted ${extractedFrames.length} frames`);
+
+    // Update total frames count
+    jobStore.updateJob(jobId, { 
+      totalFrames: extractedFrames.length,
+      progress: 50 // Frame extraction complete
+    });
+
+    // Convert frames to ASCII using Ghostty algorithm
+    console.log(`[Job ${jobId}] Converting frames to ASCII...`);
     
-    performanceMonitor.endStep();
+    performanceMonitor.startStep('ASCII Conversion');
+    const ghosttyConverter = new GhosttyConverter();
+    
+    const asciiFrames = [];
+    
+    for (let i = 0; i < extractedFrames.length; i++) {
+      const frame = extractedFrames[i];
+      
+      try {
+        // Convert single frame using exact Ghostty logic
+        const asciiFrame = await ghosttyConverter.convertFramesToASCII([frame]);
+        if (asciiFrame.length > 0) {
+          asciiFrames.push(asciiFrame[0]);
+        }
+        
+        // Update progress (50% + 40% for ASCII conversion)
+        const conversionProgress = Math.floor((i / extractedFrames.length) * 40);
+        jobStore.updateJob(jobId, { 
+          progress: 50 + conversionProgress,
+          status: 'processing'
+        });
+        
+      } catch (error) {
+        console.warn(`[Job ${jobId}] Failed to convert frame ${i}:`, error);
+      }
+    }
 
-    // End performance monitoring and get metrics
-    const metrics = performanceMonitor.endConversion();
-    const recommendations = performanceMonitor.getOptimizationRecommendations(metrics);
+    console.log(`[Job ${jobId}] Converted ${asciiFrames.length} frames to ASCII`);
 
-    // Update job with completed frames and performance data
+    // Create ZIP archive
+    performanceMonitor.startStep('ZIP Creation');
+    console.log(`[Job ${jobId}] Creating ZIP archive...`);
+    
+    const JSZip = (await import('jszip')).default;
+    const zip = new JSZip();
+
+    // Add ASCII frames to ZIP
+    for (let i = 0; i < asciiFrames.length; i++) {
+      const frame = asciiFrames[i];
+      const filename = `frame_${String(i + 1).padStart(4, '0')}.txt`;
+      zip.file(filename, frame.asciiContent);
+    }
+
+    // Generate ZIP blob
+    const zipBlob = await zip.generateAsync({ type: 'arraybuffer' });
+    const zipBuffer = new Uint8Array(zipBlob);
+
+    // Store the result (simplified for now)
     jobStore.updateJob(jobId, {
       status: 'complete',
       progress: 100,
-      frames: asciiFrames,
-      performanceMetrics: metrics,
-      optimizationRecommendations: recommendations
+      frames: asciiFrames
     });
 
-    resourceManager.endJob(jobId);
-
-    console.log(`Job ${jobId} completed successfully with ${asciiFrames.length} mock frames in ${Math.round(metrics.conversionTime)}ms`);
+    performanceMonitor.endConversion();
+    
+    console.log(`[Job ${jobId}] Processing completed:`, {
+      frameCount: asciiFrames.length,
+      totalSize: zipBuffer.length
+    });
 
   } catch (error) {
-    console.error(`Processing failed for job ${jobId}:`, error);
-    
+    console.error(`[Job ${jobId}] Processing failed:`, error);
     jobStore.updateJob(jobId, {
       status: 'error',
-      error: error instanceof Error ? error.message : 'Unknown processing error'
+      error: error instanceof Error ? error.message : 'Processing failed'
     });
-
+  } finally {
     resourceManager.endJob(jobId);
   }
 }
@@ -293,73 +301,16 @@ function validateSettings(settings: ConversionSettings): { valid: boolean; error
     }
   }
 
-  // Validate color mode
-  if (!['blackwhite', 'twotone', 'fullcolor'].includes(settings.colorMode)) {
-    return { valid: false, error: 'Color mode must be "blackwhite", "twotone", or "fullcolor"' };
-  }
-
-  if (settings.colorMode === 'twotone') {
-    if (!settings.twoToneColors || settings.twoToneColors.length !== 2) {
-      return { valid: false, error: 'Two-tone colors required when color mode is "twotone"' };
-    }
-    
-    // Validate color format (basic hex check)
-    for (const color of settings.twoToneColors) {
-      if (!/^#[0-9A-Fa-f]{6}$/.test(color)) {
-        return { valid: false, error: 'Two-tone colors must be valid hex colors (e.g., #FF0000)' };
-      }
-    }
-  }
-
-  // Validate background
-  if (!['transparent', 'black', 'white'].includes(settings.background)) {
-    return { valid: false, error: 'Background must be "transparent", "black", or "white"' };
-  }
-
   return { valid: true };
 }
 
 /**
- * Estimate processing time based on file size and settings
+ * Create error response
  */
-function estimateProcessingTime(fileSizeBytes: number, settings: ConversionSettings): number {
-  // Base time per MB (in seconds)
-  const baseTimePerMB = 10;
-  
-  // Adjustments based on settings
-  let multiplier = 1;
-  
-  // Higher FPS takes longer
-  if (settings.frameRate === 24) {
-    multiplier *= 1.5;
-  }
-  
-  // Higher resolution takes longer
-  if (settings.resolutionScale === 1.0) {
-    multiplier *= 1.5;
-  } else if (settings.resolutionScale === 0.75) {
-    multiplier *= 1.2;
-  }
-  
-  // Color processing takes longer
-  if (settings.colorMode === 'fullcolor') {
-    multiplier *= 1.3;
-  } else if (settings.colorMode === 'twotone') {
-    multiplier *= 1.1;
-  }
-
-  const fileSizeMB = fileSizeBytes / (1024 * 1024);
-  return Math.round(baseTimePerMB * fileSizeMB * multiplier);
-}
-
-/**
- * Create standardized error response
- */
-function createError(type: ErrorType, message: string, details?: any): APIError {
+function createError(type: ErrorType, message: string): APIError {
   return {
     type,
     message,
-    details,
     timestamp: new Date()
   };
 }
