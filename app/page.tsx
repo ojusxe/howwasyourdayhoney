@@ -1,159 +1,94 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import GhosttySettingsPanel from "@/components/GhosttySettingsPanel";
+import UploadForm from "@/components/UploadForm";
 import ProgressBar from "@/components/ProgressBar";
-import DownloadButton from "@/components/DownloadButton";
-import AnimatedTerminal from "@/components/AnimatedTerminal";
+import PreviewPlayer from "@/components/PreviewPlayer";
+import ClientDownloadButton from "@/components/ClientDownloadButton";
 import ErrorDisplay from "@/components/ErrorDisplay";
-import PerformanceDisplay from "@/components/PerformanceDisplay";
-import { FileUpload } from "@/components/ui/file-upload";
-import {
-  ConversionSettings,
-  DEFAULT_SETTINGS,
-  MAX_FILE_SIZE,
-  MAX_DURATION,
-  APIError,
-  ASCIIFrame,
-  ErrorType,
-} from "@/lib/types";
+import { extractFrames } from "@/lib/clientVideoProcessor";
+import { convertFramesToAscii } from "@/lib/clientAsciiConverter";
+import { ErrorType } from "@/lib/types";
 
-type AppState = "idle" | "uploading" | "processing" | "complete" | "error";
+type AppState = "idle" | "processing" | "complete" | "error";
 
-interface JobStatus {
-  jobId: string;
-  status: "pending" | "processing" | "complete" | "error";
-  progress: number;
-  totalFrames: number;
-  processedFrames: number;
-  error?: string;
-  frames?: Array<{
-    index: number;
-    timestamp: number;
-    asciiContent: string;
-    width: number;
-    height: number;
-  }>; // Optional frames data for preview
-  performanceMetrics?: {
-    conversionTime: number;
-    memoryUsageMB: number;
-    averageFrameTime: number;
-    processingSteps: Array<{
-      name: string;
-      duration: number;
-      memoryUsageMB: number;
-    }>;
-  };
-  optimizationRecommendations?: string[];
+interface ProcessingError {
+  type: ErrorType;
+  message: string;
+  timestamp: Date;
 }
 
 export default function Home() {
   const [appState, setAppState] = useState<AppState>("idle");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [settings, setSettings] =
-    useState<ConversionSettings>(DEFAULT_SETTINGS);
-  const [jobStatus, setJobStatus] = useState<JobStatus | null>(null);
-  const [currentFrame, setCurrentFrame] = useState<ASCIIFrame | null>(null);
-  const [error, setError] = useState<APIError | null>(null);
-  const [statusPollingInterval, setStatusPollingInterval] =
-    useState<NodeJS.Timeout | null>(null);
-
-  // cleanup polling interval on component unmount
-  useEffect(() => {
-    return () => {
-      if (statusPollingInterval) {
-        clearInterval(statusPollingInterval);
-      }
-    };
-  }, [statusPollingInterval]);
+  const [progress, setProgress] = useState(0);
+  const [asciiFrames, setAsciiFrames] = useState<string[]>([]);
+  const [error, setError] = useState<ProcessingError | null>(null);
 
   const handleFileSelect = useCallback((file: File) => {
     setSelectedFile(file);
     setError(null);
     setAppState("idle");
-    setJobStatus(null);
-    setCurrentFrame(null);
+    setProgress(0);
+    setAsciiFrames([]);
   }, []);
 
-  const handleFileUpload = useCallback(
-    (files: File[]) => {
-      if (files.length === 0) return;
-
-      const file = files[0]; // take only the first file
-
-      // validate file type against accepted formats
-      const validFormats = ["video/mp4", "video/webm"];
-      if (!validFormats.includes(file.type)) {
-        setError({
-          type: ErrorType.VALIDATION_ERROR,
-          message: "Invalid file format. Please upload MP4 or WebM files only.",
-          timestamp: new Date(),
-        });
-        return;
-      }
-
-      // check file size limits
-      if (file.size > MAX_FILE_SIZE) {
-        setError({
-          type: ErrorType.VALIDATION_ERROR,
-          message: `File size (${Math.round(
-            file.size / 1024 / 1024
-          )}MB) exceeds maximum allowed size (${
-            MAX_FILE_SIZE / 1024 / 1024
-          }MB)`,
-          timestamp: new Date(),
-        });
-        return;
-      }
-
-      // File is valid, proceed
-      handleFileSelect(file);
-    },
-    [handleFileSelect]
-  );
-
-  const handleSettingsChange = useCallback(
-    (newSettings: ConversionSettings) => {
-      setSettings(newSettings);
-    },
-    []
-  );
-
-  const handleStartProcessing = useCallback(async () => {
+  const handleProcessVideo = useCallback(async () => {
     if (!selectedFile) return;
 
-    setAppState("uploading");
+    // Check browser compatibility
+    if (typeof SharedArrayBuffer === 'undefined') {
+      setError({
+        type: ErrorType.PROCESSING_ERROR,
+        message: "Your browser doesn't support SharedArrayBuffer, which is required for video processing. Please enable it in your browser settings or use a different browser.",
+        timestamp: new Date(),
+      });
+      return;
+    }
+
+    if (typeof WebAssembly === 'undefined') {
+      setError({
+        type: ErrorType.PROCESSING_ERROR,
+        message: "Your browser doesn't support WebAssembly, which is required for video processing. Please use a modern browser.",
+        timestamp: new Date(),
+      });
+      return;
+    }
+
+    setAppState("processing");
     setError(null);
+    setProgress(0);
+    setAsciiFrames([]);
 
     try {
-      const formData = new FormData();
-      formData.append("video", selectedFile);
-      // Note: /api/process-ghostty doesn't need settings as it uses fixed Ghostty configuration
-
-      const response = await fetch("/api/process-ghostty", {
-        method: "POST",
-        body: formData,
+      // Step 1: Extract frames from video
+      console.log("Starting frame extraction...");
+      const frameBlobs = await extractFrames(selectedFile, (extractProgress) => {
+        // Frame extraction is roughly 70% of total work
+        setProgress(Math.round(extractProgress * 0.7));
       });
 
-      const data = await response.json();
+      console.log(`Extracted ${frameBlobs.length} frames`);
 
-      if (!response.ok) {
-        throw new Error(data.error || data.message || "Processing failed");
-      }
+      // Step 2: Convert frames to ASCII
+      console.log("Starting ASCII conversion...");
+      const frames = await convertFramesToAscii(
+        frameBlobs,
+        { width: 100 }, // Ghostty-style 100 columns
+        (current, total) => {
+          // ASCII conversion is the remaining 30%
+          const conversionProgress = (current / total) * 30;
+          setProgress(Math.round(70 + conversionProgress));
+        }
+      );
 
-      // Start processing
-      setJobStatus({
-        jobId: data.jobId,
-        status: "pending",
-        progress: 0,
-        totalFrames: data.estimatedFrames || data.totalFrames || 0,
-        processedFrames: 0,
-      });
+      console.log(`Converted ${frames.length} frames to ASCII`);
 
-      setAppState("processing");
-      startStatusPolling(data.jobId);
+      setAsciiFrames(frames);
+      setProgress(100);
+      setAppState("complete");
     } catch (err) {
       console.error("Processing failed:", err);
       setError({
@@ -163,79 +98,24 @@ export default function Home() {
       });
       setAppState("error");
     }
-  }, [selectedFile, settings]);
-
-  const startStatusPolling = useCallback((jobId: string) => {
-    const interval = setInterval(async () => {
-      try {
-        // Include frames in the request if we don't have them yet and job might be complete
-        const includeFrames = !jobStatus?.frames && (jobStatus?.status === 'complete' || !jobStatus);
-        const url = `/api/status?jobId=${jobId}${includeFrames ? '&includeFrames=true' : ''}`;
-        
-        console.log(`Polling status for job: ${jobId}`);
-        const response = await fetch(url);
-        const status = await response.json();
-
-        if (!response.ok) {
-          console.error(`Status API error for job ${jobId}:`, status);
-          throw new Error(status.message || "Failed to get status");
-        }
-
-        console.log(`Job ${jobId} status:`, status.status, `Progress: ${status.progress}%`);
-        setJobStatus(status);
-
-        if (status.status === "complete") {
-          console.log(`Job ${jobId} completed with ${status.processedFrames} frames`);
-          setAppState("complete");
-          clearInterval(interval);
-          setStatusPollingInterval(null);
-        } else if (status.status === "error") {
-          console.error(`Job ${jobId} failed:`, status.error);
-          setError({
-            type: ErrorType.PROCESSING_ERROR,
-            message: status.error || "Processing failed",
-            timestamp: new Date(),
-          });
-          setAppState("error");
-          clearInterval(interval);
-          setStatusPollingInterval(null);
-        }
-      } catch (err) {
-        console.error("Status polling failed for job", jobId, ":", err);
-        setError({
-          type: ErrorType.PROCESSING_ERROR,
-          message: `Failed to get processing status for job ${jobId}. ${err instanceof Error ? err.message : ''}`,
-          timestamp: new Date(),
-        });
-        setAppState("error");
-        clearInterval(interval);
-        setStatusPollingInterval(null);
-      }
-    }, 2000); // Poll every 2 seconds
-
-    setStatusPollingInterval(interval);
-  }, []);
-
-  const handleDownload = useCallback(() => {
-    // Download completed, reset to allow new conversion
-    setTimeout(() => {
-      setAppState("idle");
-      setSelectedFile(null);
-      setJobStatus(null);
-      setCurrentFrame(null);
-    }, 1000);
-  }, []);
+  }, [selectedFile]);
 
   const handleRetry = useCallback(() => {
     setError(null);
     setAppState("idle");
-    setJobStatus(null);
-    setCurrentFrame(null);
-    if (statusPollingInterval) {
-      clearInterval(statusPollingInterval);
-      setStatusPollingInterval(null);
-    }
-  }, [statusPollingInterval]);
+    setProgress(0);
+    setAsciiFrames([]);
+  }, []);
+
+  const handleDownload = useCallback(() => {
+    // Reset after download
+    setTimeout(() => {
+      setAppState("idle");
+      setSelectedFile(null);
+      setProgress(0);
+      setAsciiFrames([]);
+    }, 1000);
+  }, []);
 
   const handleDismissError = useCallback(() => {
     setError(null);
@@ -245,34 +125,19 @@ export default function Home() {
   }, [appState]);
 
   const getProgressProps = () => {
-    if (!jobStatus) {
-      return {
-        progress: 0,
-        currentFrame: 0,
-        totalFrames: 0,
-        status: "idle" as const,
-        message: undefined,
-      };
-    }
-
     return {
-      progress: jobStatus.progress,
-      currentFrame: jobStatus.processedFrames,
-      totalFrames: jobStatus.totalFrames,
-      status:
-        jobStatus.status === "pending"
-          ? ("processing" as const)
-          : jobStatus.status === "processing"
-          ? ("processing" as const)
-          : jobStatus.status === "complete"
-          ? ("complete" as const)
-          : ("error" as const),
-      message: jobStatus.error,
+      progress,
+      currentFrame: 0,
+      totalFrames: asciiFrames.length,
+      status: appState === "processing" ? ("processing" as const) : 
+              appState === "complete" ? ("complete" as const) : 
+              appState === "error" ? ("error" as const) : ("idle" as const),
+      message: error?.message,
     };
   };
 
   const canStartProcessing = selectedFile && appState === "idle";
-  const isProcessing = appState === "uploading" || appState === "processing";
+  const isProcessing = appState === "processing";
   const isComplete = appState === "complete";
 
   return (
@@ -286,7 +151,7 @@ export default function Home() {
           </h1>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto mb-4">
             Upload a short video and convert it into ASCII art frames using
-            Ghostty-inspired algorithms. Perfect for terminal animations and
+            client-side processing. Perfect for terminal animations and
             retro-style displays.
           </p>
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 max-w-2xl mx-auto">
@@ -306,8 +171,10 @@ export default function Home() {
                 shapes, text/graphics
               </p>
               <p>
-                <strong>Output:</strong> 100 columns max, aspect ratio corrected
-                (0.44 font ratio)
+                <strong>Processing:</strong> Done entirely in your browser - no server upload needed!
+              </p>
+              <p className="text-xs text-blue-600 mt-2">
+                <strong>Browser Requirements:</strong> Chrome 79+, Firefox 72+, Safari 15.2+, or Edge 79+ with WebAssembly and SharedArrayBuffer support
               </p>
             </div>
           </div>
@@ -323,55 +190,18 @@ export default function Home() {
             />
           )}
 
-          {/* Upload Area */}
-          <div className="w-full max-w-4xl mx-auto min-h-96 border border-dashed bg-white border-neutral-200 rounded-lg">
-            <FileUpload onChange={handleFileUpload} />
-          </div>
-
-          {/* File Info */}
-          {selectedFile && (
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <div className="flex items-center space-x-3">
-                <svg
-                  className="w-5 h-5 text-blue-500"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
-                  />
-                </svg>
-                <div>
-                  <p className="text-sm font-medium text-blue-900">
-                    {selectedFile.name}
-                  </p>
-                  <p className="text-xs text-blue-700">
-                    {(selectedFile.size / 1024 / 1024).toFixed(1)}MB •{" "}
-                    {selectedFile.type}
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Settings Panel */}
-          {selectedFile && (
-            <GhosttySettingsPanel
-              settings={settings}
-              onSettingsChange={handleSettingsChange}
-              disabled={isProcessing}
-            />
-          )}
+          {/* Upload Form */}
+          <UploadForm
+            onFileSelect={handleFileSelect}
+            disabled={isProcessing}
+            selectedFile={selectedFile}
+          />
 
           {/* Start Processing Button */}
           {canStartProcessing && (
             <div className="text-center">
               <button
-                onClick={handleStartProcessing}
+                onClick={handleProcessVideo}
                 className="btn-primary px-8 py-3 text-lg"
               >
                 Start Conversion
@@ -380,54 +210,30 @@ export default function Home() {
           )}
 
           {/* Progress Bar */}
-          <ProgressBar {...getProgressProps()} />
+          {(isProcessing || isComplete) && (
+            <ProgressBar {...getProgressProps()} />
+          )}
 
           {/* ASCII Animation Preview */}
-          {isComplete && jobStatus?.frames && jobStatus.frames.length > 0 && (
+          {isComplete && asciiFrames.length > 0 && (
             <div className="space-y-4">
               <h3 className="text-lg font-semibold text-gray-900">
                 ASCII Animation Preview
               </h3>
-              <AnimatedTerminal 
-                frames={jobStatus.frames}
-                fps={settings.frameRate}
-                title="Ghostty ASCII Video"
-                fontSize="medium"
+              <PreviewPlayer 
+                frames={asciiFrames}
+                fps={24}
               />
             </div>
           )}
 
           {/* Download Button */}
-          {isComplete && jobStatus && (
-            <DownloadButton
-              jobId={jobStatus.jobId}
+          {isComplete && asciiFrames.length > 0 && (
+            <ClientDownloadButton
+              frames={asciiFrames}
               disabled={!isComplete}
               onDownload={handleDownload}
-            />
-          )}
-
-          {/* Performance Display */}
-          {isComplete && jobStatus?.performanceMetrics && (
-            <PerformanceDisplay
-              metrics={{
-                conversionTime: jobStatus.performanceMetrics.conversionTime,
-                memoryUsage:
-                  jobStatus.performanceMetrics.memoryUsageMB * 1024 * 1024,
-                frameCount: jobStatus.totalFrames,
-                averageFrameTime: jobStatus.performanceMetrics.averageFrameTime,
-                peakMemoryUsage:
-                  jobStatus.performanceMetrics.memoryUsageMB * 1024 * 1024,
-                processingSteps:
-                  jobStatus.performanceMetrics.processingSteps.map((step) => ({
-                    name: step.name,
-                    startTime: 0,
-                    endTime: step.duration,
-                    duration: step.duration,
-                    memoryBefore: 0,
-                    memoryAfter: step.memoryUsageMB * 1024 * 1024,
-                  })),
-              }}
-              recommendations={jobStatus.optimizationRecommendations}
+              filename="ascii-animation"
             />
           )}
         </div>

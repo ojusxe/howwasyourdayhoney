@@ -4,74 +4,48 @@
 
 An ASCII animation generation app that converts videos into ASCII art frames and exports them as downloadable text files.
 
-## Abstract buisness logic
+## Client-Side Processing Flow
 
 ```
 Video Upload → Frame Extraction → ASCII Conversion → TXT File Creation → ZIP Packaging → Download Ready
       ↓              ↓                   ↓                 ↓                ↓              ↓
-   Validation    PNG Files         ASCII Frames      Individual TXT    ZIP Archive    Frontend
-                                                         Files                         Notification
+   Browser        FFmpeg.wasm       Canvas API        JavaScript        JSZip          Browser
+  Validation      PNG Frames       ASCII Frames      Individual TXT    ZIP Archive     Download
 ```
 
-Upload a video file and get a ZIP archive containing ASCII art representations of each frame as individual text files.
+Upload a video file and get a ZIP archive containing ASCII art representations of each frame as individual text files - all processed locally in your browser.
 
 ## Engine Details
 
-- **Frame Extraction**: FFmpeg extracts PNG frames from video input
-- **ASCII Conversion**: Custom algorithm converts images to ASCII using luminance mapping
-- **Character Mapping**: Uses optimized character set for visual density representation
+- **Frame Extraction**: FFmpeg.wasm extracts PNG frames from video input in the browser
+- **ASCII Conversion**: Canvas API and JavaScript convert images to ASCII using luminance mapping
+- **Character Mapping**: Uses Ghostty-inspired character set (·~ox+=*%$@) for visual density representation
 - **File Export**: Each frame becomes a standalone text file ready for terminal display
+- **Privacy First**: All processing happens locally - your videos never leave your browser
 
-The ASCII conversion Engine uses advanced color detection and character mapping techniques for quality results.
+The ASCII conversion engine uses advanced luminance calculation and character mapping techniques for quality results.
 
 ## Technical Stack
 
 - Next.js 15
 - TypeScript
-- Native system tools (FFmpeg, ImageMagick)
-- JSZip for archive creation
+- FFmpeg.wasm (WebAssembly-based video processing)
+- Canvas API for image manipulation
+- JSZip for client-side archive creation
 - TailwindCSS for styling
 
+## Client-Side Processing
 
-This application requires FFmpeg and ImageMagick to be installed on your system for video processing.
+This application now runs entirely in your browser! No server-side processing or system dependencies required.
 
-### Windows (using winget)
-
-```bash
-winget install Gyan.FFmpeg
-
-winget install ImageMagick.ImageMagick
-```
-
-### macOS (using Homebrew)
-
-```bash
-
-brew install ffmpeg
-
-brew install imagemagick
-```
-
-### Linux (Ubuntu/Debian)
-
-```bash
-sudo apt update
-sudo apt install ffmpeg
-sudo apt install imagemagick
-```
-
-### Verify Installation
-
-After installation, verify that both tools are available:
-
-```bash
-ffmpeg -version
-magick -version 
-```
+- **Video Processing**: Uses FFmpeg.wasm for frame extraction
+- **ASCII Conversion**: Canvas API and JavaScript for image-to-ASCII conversion
+- **File Generation**: Client-side ZIP creation with JSZip
+- **Privacy**: Your videos never leave your browser
 
 ## Local Dev
 
-Prerequisites: Node.js, pnpm, FFmpeg, ImageMagick
+Prerequisites: Node.js, pnpm (no system tools required!)
 
 ```bash
 pnpm install
