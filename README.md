@@ -2,9 +2,9 @@
 
 ![Logo](public/hwydh.png)
 
-A Next.js application that converts videos into ASCII art frames and exports them as downloadable text files.
+An ASCII animation generation app that converts videos into ASCII art frames and exports them as downloadable text files.
 
-## What It Does
+## Abstract buisness logic
 
 ```
 Video Upload → Frame Extraction → ASCII Conversion → TXT File Creation → ZIP Packaging → Download Ready
@@ -22,48 +22,41 @@ Upload a video file and get a ZIP archive containing ASCII art representations o
 - **Character Mapping**: Uses optimized character set for visual density representation
 - **File Export**: Each frame becomes a standalone text file ready for terminal display
 
-The ASCII conversion algorithm is inspired by Ghostty's terminal rendering approach.
+The ASCII conversion Engine uses advanced color detection and character mapping techniques for quality results.
 
 ## Technical Stack
 
-- Next.js 15 with App Router
+- Next.js 15
 - TypeScript
 - Native system tools (FFmpeg, ImageMagick)
 - JSZip for archive creation
 - TailwindCSS for styling
 
-## System Dependencies
 
 This application requires FFmpeg and ImageMagick to be installed on your system for video processing.
 
 ### Windows (using winget)
 
 ```bash
-# Install FFmpeg
 winget install Gyan.FFmpeg
 
-# Install ImageMagick
 winget install ImageMagick.ImageMagick
 ```
 
 ### macOS (using Homebrew)
 
 ```bash
-# Install FFmpeg
+
 brew install ffmpeg
 
-# Install ImageMagick
 brew install imagemagick
 ```
 
 ### Linux (Ubuntu/Debian)
 
 ```bash
-# Install FFmpeg
 sudo apt update
 sudo apt install ffmpeg
-
-# Install ImageMagick
 sudo apt install imagemagick
 ```
 
@@ -73,10 +66,10 @@ After installation, verify that both tools are available:
 
 ```bash
 ffmpeg -version
-magick -version  # or 'convert -version' on older systems
+magick -version 
 ```
 
-## Development
+## Local Dev
 
 Prerequisites: Node.js, pnpm, FFmpeg, ImageMagick
 
@@ -85,15 +78,15 @@ pnpm install
 pnpm dev
 ```
 
-Open http://localhost:3000
+Go to -> http://localhost:3000
 
 ### Build Commands
 
 ```bash
-pnpm build          # Production build
-pnpm lint           # Code linting
-pnpm test           # Run tests
-pnpm test:watch     # Watch mode testing
+pnpm build         
+pnpm lint          
+pnpm test         
+pnpm test:watch   
 ```
 
 ## How to Use Git in This Repo
