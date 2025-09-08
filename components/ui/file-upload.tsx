@@ -47,9 +47,12 @@ export const FileUpload = ({
     noClick: true,
     accept: {
       'video/mp4': ['.mp4'],
-      'video/webm': ['.webm']
+      'video/webm': ['.webm'],
+      'video/avi': ['.avi'],
+      'video/mov': ['.mov'],
+      'video/quicktime': ['.mov']
     },
-    maxSize: 25 * 1024 * 1024, // 25MB
+    maxSize: 50 * 1024 * 1024, // 50MB
     onDrop: handleFileChange,
     onDropRejected: (error) => {
       console.log(error);
@@ -67,7 +70,7 @@ export const FileUpload = ({
           ref={fileInputRef}
           id="file-upload-handle"
           type="file"
-          accept="video/mp4,video/webm"
+          accept="video/mp4,video/webm,video/avi,video/mov"
           onChange={(e) => handleFileChange(Array.from(e.target.files || []))}
           className="hidden"
         />
@@ -82,7 +85,7 @@ export const FileUpload = ({
             Drag or drop your video here or click to upload
           </p>
           <p className="relative z-20 font-sans font-normal text-neutral-500 dark:text-neutral-500 text-sm mt-1">
-            MP4 or WebM • Max 25MB • Max 15 seconds
+            MP4, WebM, AVI, MOV • Max 50MB • Max 30 seconds
           </p>
           <div className="relative w-full mt-10 max-w-xl mx-auto">
             {files.length > 0 &&

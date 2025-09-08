@@ -3,7 +3,7 @@
  */
 
 import { convertFrameToAscii } from '@/lib/clientAsciiConverter';
-import { DEFAULT_CHARACTER_SET } from '@/lib/types';
+import { OPTIMIZED_CHARACTER_SET } from '@/lib/types';
 
 // Mock browser APIs for testing
 global.createImageBitmap = jest.fn();
@@ -45,8 +45,8 @@ describe('Client-side ASCII Conversion', () => {
       const mockBlob = new Blob(['test'], { type: 'image/png' });
       
       const result = await convertFrameToAscii(mockBlob, {
-        width: 100,
-        characterSet: DEFAULT_CHARACTER_SET
+        width: 120,
+        characterSet: OPTIMIZED_CHARACTER_SET
       });
 
       expect(result).toBeDefined();
@@ -83,8 +83,8 @@ describe('Client-side ASCII Conversion', () => {
       const result = await convertFrameToAscii(mockBlob);
 
       expect(result).toBeDefined();
-      // Should use default character set
-      expect(result).toMatch(/[·~ox+=*%$@\s\n]/);
+      // Should use optimized character set
+      expect(result).toMatch(/[ .'`^",:;Il!i><~+_\-?\]\[}{1)(|\\\/tfjrxnuvczXYUJCLQ0OZmwqpdbkhao*#MW&8%B@$\s\n]/);
     });
 
     it('should handle different image sizes', async () => {
@@ -137,15 +137,15 @@ describe('Client-side ASCII Conversion', () => {
 });
 
 describe('Character Set', () => {
-  it('should use the correct default character set', () => {
-    expect(DEFAULT_CHARACTER_SET).toBe('·~ox+=*%$@');
+  it('should use the optimized character set', () => {
+    expect(OPTIMIZED_CHARACTER_SET).toBe(' .\'`^",:;Il!i><~+_-?][}{1)(|\\/tfjrxnuvczXYUJCLQ0OZmwqpdbkhao*#MW&8%B@$');
   });
 
   it('should have characters ordered from light to dark', () => {
     // The character set should represent luminance from light to dark
-    const chars = DEFAULT_CHARACTER_SET.split('');
-    expect(chars).toHaveLength(10);
-    expect(chars[0]).toBe('·'); // Lightest
-    expect(chars[chars.length - 1]).toBe('@'); // Darkest
+    const chars = OPTIMIZED_CHARACTER_SET.split('');
+    expect(chars.length).toBeGreaterThan(50); // Should have 70+ characters
+    expect(chars[0]).toBe(' '); // Lightest (space)
+    expect(chars[chars.length - 1]).toBe('$'); // Darkest
   });
 });

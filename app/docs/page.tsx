@@ -30,10 +30,11 @@ export default function DocsPage() {
 
             <h3 className="text-xl font-semibold text-gray-900 mb-3">Supported Formats</h3>
             <ul className="list-disc list-inside text-gray-700 mb-4 space-y-1">
-              <li><strong>Video formats:</strong> MP4, WebM</li>
-              <li><strong>Maximum file size:</strong> 25MB</li>
-              <li><strong>Maximum duration:</strong> 15 seconds</li>
-              <li><strong>Frame rates:</strong> 12 FPS or 24 FPS</li>
+              <li><strong>Video formats:</strong> MP4, WebM, AVI, MOV</li>
+              <li><strong>Maximum file size:</strong> 50MB</li>
+              <li><strong>Maximum duration:</strong> 30 seconds</li>
+              <li><strong>Frame rate:</strong> 24 FPS (cinema standard)</li>
+              <li><strong>Works with:</strong> Any animated content - movies, games, animations, screen recordings</li>
             </ul>
 
             <h3 className="text-xl font-semibold text-gray-900 mb-3">Usage Instructions</h3>
@@ -75,12 +76,12 @@ export default function DocsPage() {
             </div>
 
             <div className="bg-gray-50 rounded-lg p-4">
-              <h3 className="font-semibold text-gray-900 mb-2">Character Set</h3>
-              <p className="text-sm text-gray-600 mb-2">We use a carefully crafted character set for optimal visual density:</p>
-              <div className="bg-white px-3 py-2 rounded font-mono text-lg tracking-wider">
-                ·~ox+=*%$@
+              <h3 className="font-semibold text-gray-900 mb-2">Optimized Character Set</h3>
+              <p className="text-sm text-gray-600 mb-2">We use a 70+ character set optimized for maximum visual accuracy:</p>
+              <div className="bg-white px-3 py-2 rounded font-mono text-sm tracking-tight break-all">
+                {' .\'`^",:;Il!i><~+_-?][}{1)(|\\/tfjrxnuvczXYUJCLQ0OZmwqpdbkhao*#MW&8%B@$'}
               </div>
-              <p className="text-xs text-gray-500 mt-2">From lightest (·) to darkest (@) for perfect luminance mapping</p>
+              <p className="text-xs text-gray-500 mt-2">From lightest (space) to darkest ($) with gamma correction for optimal visual perception</p>
             </div>
           </section>
 

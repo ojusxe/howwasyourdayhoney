@@ -19,11 +19,11 @@ Upload a video file and get a ZIP archive containing ASCII art representations o
 
 - **Frame Extraction**: FFmpeg.wasm extracts PNG frames from video input in the browser
 - **ASCII Conversion**: Canvas API and JavaScript convert images to ASCII using luminance mapping
-- **Character Mapping**: Uses classic ASCII character set (·~ox+=*%$@) for visual density representation
+- **Character Mapping**: Uses optimized ASCII character set for maximum visual accuracy across all video types
 - **File Export**: Each frame becomes a standalone text file ready for terminal display
 - **Privacy First**: All processing happens locally - your videos never leave your browser
 
-The ASCII conversion engine uses advanced luminance calculation and character mapping techniques to create beautiful terminal art from your videos.
+The ASCII conversion engine uses advanced luminance calculation and optimized character mapping to create stunning terminal animations from any video content.
 
 ## Technical Stack
 
@@ -57,10 +57,10 @@ Go to -> http://localhost:3000
 ### Build Commands
 
 ```bash
-pnpm build         
-pnpm lint          
-pnpm test         
-pnpm test:watch   
+pnpm build
+pnpm lint
+pnpm test
+pnpm test:watch
 ```
 
 ## How to Use Git in This Repo
@@ -90,4 +90,3 @@ You are now ready to start the process over again.
 - Maximum file size: 25MB
 - Maximum duration: 15 seconds
 - Supported formats: MP4, WebM
-

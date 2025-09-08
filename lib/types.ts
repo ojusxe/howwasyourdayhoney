@@ -66,6 +66,10 @@ export interface ErrorDisplayProps {
 }
 
 // Application constants
-export const MAX_FILE_SIZE = 25 * 1024 * 1024; // 25MB
-export const MAX_DURATION = 15; // 15 seconds
-export const DEFAULT_CHARACTER_SET = '·~ox+=*%$@';
+export const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB - increased for better video support
+export const MAX_DURATION = 30; // 30 seconds - more flexible for various content
+export const DEFAULT_FPS = 24; // Standard 24 FPS for smooth animation
+
+// Optimized character set for maximum visual accuracy
+// Ordered from lightest to darkest for precise luminance mapping
+export const OPTIMIZED_CHARACTER_SET = ' .\'`^",:;Il!i><~+_-?][}{1)(|\\/tfjrxnuvczXYUJCLQ0OZmwqpdbkhao*#MW&8%B@$';

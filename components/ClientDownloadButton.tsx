@@ -63,8 +63,8 @@ Get-ChildItem frame-*.txt | ForEach-Object {
 
 ## Frame Details
 - Total frames: ${frames.length}
-- Recommended FPS: 24
-- Character width: ~100 columns
+- Frame Rate: 24 FPS (cinema standard)
+- Character width: ~120 columns for optimal detail
 - Generated with "How Was Your Day Honey?" ASCII converter
 
 Enjoy your ASCII animation!

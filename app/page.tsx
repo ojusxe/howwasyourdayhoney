@@ -11,6 +11,7 @@ import ErrorDisplay from "@/components/ErrorDisplay";
 import { extractFrames } from "@/lib/clientVideoProcessor";
 import { convertFramesToAscii } from "@/lib/clientAsciiConverter";
 import { ErrorType } from "@/lib/types";
+import VideoSettings, { VideoProcessingSettings } from "@/components/VideoSettings";
 
 type AppState = "idle" | "processing" | "complete" | "error";
 
@@ -26,6 +27,11 @@ export default function Home() {
   const [progress, setProgress] = useState(0);
   const [asciiFrames, setAsciiFrames] = useState<string[]>([]);
   const [error, setError] = useState<ProcessingError | null>(null);
+  const [videoSettings, setVideoSettings] = useState<VideoProcessingSettings>({
+    contrast: 1.2,
+    brightness: 0,
+    width: 120
+  });
 
   const handleFileSelect = useCallback((file: File) => {
     setSelectedFile(file);
@@ -89,7 +95,11 @@ export default function Home() {
       console.log("Starting ASCII conversion...");
       const frames = await convertFramesToAscii(
         frameBlobs,
-        { width: 100, characterSet: '·~ox+=*%$@' }, // Classic ASCII character set
+        { 
+          width: videoSettings.width,
+          contrast: videoSettings.contrast,
+          brightness: videoSettings.brightness
+        },
         (current, total) => {
           // ASCII conversion is the remaining 30%
           const conversionProgress = (current / total) * 30;
@@ -179,21 +189,20 @@ export default function Home() {
             </h3>
             <div className="text-xs text-blue-800 space-y-1">
               <p>
-                <strong>Formats:</strong> MP4, WebM
+                <strong>Formats:</strong> MP4, WebM, AVI, MOV
               </p>
               <p>
-                <strong>Max Size:</strong> 25MB | <strong>Max Duration:</strong>{" "}
-                15 seconds
+                <strong>Max Size:</strong> 50MB | <strong>Max Duration:</strong>{" "}
+                30 seconds
               </p>
               <p>
-                <strong>Best Results:</strong> High contrast videos, simple
-                shapes, text/graphics
+                <strong>Frame Rate:</strong> 24 FPS for smooth animations
               </p>
               <p>
                 <strong>Processing:</strong> Done entirely in your browser - no server upload needed!
               </p>
               <p className="text-xs text-blue-600 mt-2">
-                <strong>Browser Requirements:</strong> Chrome 79+, Firefox 72+, Safari 15.2+, or Edge 79+ with WebAssembly and SharedArrayBuffer support
+                <strong>Works with:</strong> Any animated content - movies, games, animations, screen recordings
               </p>
             </div>
           </div>
@@ -215,6 +224,15 @@ export default function Home() {
             disabled={isProcessing}
             selectedFile={selectedFile}
           />
+
+          {/* Video Settings */}
+          {selectedFile && (
+            <VideoSettings
+              settings={videoSettings}
+              onSettingsChange={setVideoSettings}
+              disabled={isProcessing}
+            />
+          )}
 
           {/* Start Processing Button */}
           {canStartProcessing && (

@@ -1,18 +1,27 @@
 /**
  * Client-side ASCII converter for "How Was Your Day Honey?"
- * Converts video frames to beautiful ASCII art using Canvas API
+ * Converts video frames to high-quality ASCII art using optimized algorithms
  */
+
+import { OPTIMIZED_CHARACTER_SET } from './types';
 
 export interface ClientASCIIOptions {
   width?: number;
   characterSet?: string;
+  contrast?: number; // 0.5 to 2.0, default 1.0
+  brightness?: number; // -100 to 100, default 0
 }
 
 export async function convertFrameToAscii(
   imageBlob: Blob, 
   options: ClientASCIIOptions = {}
 ): Promise<string> {
-  const { width = 100, characterSet = '·~ox+=*%$@' } = options;
+  const { 
+    width = 120, // Increased default width for better detail
+    characterSet = OPTIMIZED_CHARACTER_SET,
+    contrast = 1.0,
+    brightness = 0
+  } = options;
   
   // Check for required browser APIs
   if (typeof createImageBitmap === 'undefined') {
@@ -52,21 +61,40 @@ export async function convertFrameToAscii(
   const imageData = ctx.getImageData(0, 0, width, height);
   const { data } = imageData;
   
-  // Convert to ASCII
+  // Convert to ASCII with enhanced processing
   let asciiString = '';
   
   for (let y = 0; y < height; y++) {
     for (let x = 0; x < width; x++) {
       const pixelIndex = (y * width + x) * 4;
-      const r = data[pixelIndex];
-      const g = data[pixelIndex + 1];
-      const b = data[pixelIndex + 2];
+      let r = data[pixelIndex];
+      let g = data[pixelIndex + 1];
+      let b = data[pixelIndex + 2];
       
-      // Calculate luminance using standard formula
-      const luminance = (r * 0.299 + g * 0.587 + b * 0.114);
+      // Apply brightness adjustment
+      if (brightness !== 0) {
+        r = Math.max(0, Math.min(255, r + brightness));
+        g = Math.max(0, Math.min(255, g + brightness));
+        b = Math.max(0, Math.min(255, b + brightness));
+      }
       
-      // Map luminance to character index
-      const charIndex = Math.floor((luminance / 255) * (characterSet.length - 1));
+      // Calculate luminance using precise formula
+      let luminance = (r * 0.2126 + g * 0.7152 + b * 0.0722);
+      
+      // Apply contrast adjustment
+      if (contrast !== 1.0) {
+        luminance = ((luminance / 255 - 0.5) * contrast + 0.5) * 255;
+        luminance = Math.max(0, Math.min(255, luminance));
+      }
+      
+      // Enhanced character mapping with better distribution
+      const normalizedLuminance = luminance / 255;
+      
+      // Use gamma correction for better visual perception
+      const gammaCorrected = Math.pow(normalizedLuminance, 0.45);
+      
+      // Map to character index with improved distribution
+      const charIndex = Math.floor(gammaCorrected * (characterSet.length - 1));
       const char = characterSet[Math.min(charIndex, characterSet.length - 1)];
       
       asciiString += char;

@@ -15,16 +15,16 @@ export default function UploadForm({ onFileSelect, disabled, selectedFile }: Upl
 
     const file = files[0];
 
-    // Validate file type
-    const validFormats = ['video/mp4', 'video/webm'];
+    // Validate file type - support common video formats
+    const validFormats = ['video/mp4', 'video/webm', 'video/avi', 'video/mov', 'video/quicktime'];
     if (!validFormats.includes(file.type)) {
-      throw new Error('Invalid file format. Please upload MP4 or WebM files only.');
+      throw new Error('Invalid file format. Please upload MP4, WebM, AVI, or MOV files.');
     }
 
-    // Check file size (25MB limit)
-    const MAX_FILE_SIZE = 25 * 1024 * 1024;
+    // Check file size (50MB limit for better video support)
+    const MAX_FILE_SIZE = 50 * 1024 * 1024;
     if (file.size > MAX_FILE_SIZE) {
-      throw new Error(`File size (${Math.round(file.size / 1024 / 1024)}MB) exceeds maximum allowed size (25MB)`);
+      throw new Error(`File size (${Math.round(file.size / 1024 / 1024)}MB) exceeds maximum allowed size (50MB)`);
     }
 
     onFileSelect(file);

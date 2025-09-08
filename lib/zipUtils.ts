@@ -100,10 +100,11 @@ Created with: How Was Your Day Honey?
 
 ## Animation Details
 
-- **Frame Rate**: 24 FPS (recommended)
-- **Character Set**: ·~ox+=*%$@
-- **Width**: ~100 columns
+- **Frame Rate**: 24 FPS (cinema standard)
+- **Character Set**: Optimized 70+ character set for maximum detail
+- **Width**: ~120 columns for optimal readability
 - **Processing**: Client-side (your video never left your browser!)
+- **Quality**: Enhanced with gamma correction and contrast optimization
 
 ## File Structure
 
