@@ -12,7 +12,7 @@ export default function Header() {
           >
             <Image
               src="/hwydh.png"
-              alt="ASCII Frame Generator"
+              alt="How Was Your Day Honey?"
               width={240}
               height={32}
               className="inline-block"

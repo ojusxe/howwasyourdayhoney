@@ -4,16 +4,7 @@ export default function Footer() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <div className="flex justify-between items-center text-sm text-gray-500">
           <p>
-            Inspired by{' '}
-            <a 
-              href="https://github.com/ghostty-org/ghostty" 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="hover:text-gray-700 transition-colors underline"
-            >
-              Ghostty
-            </a>
-            {' '}(MIT License)
+            Made with ❤️ for ASCII art lovers
           </p>
           <a 
             href="https://github.com" 

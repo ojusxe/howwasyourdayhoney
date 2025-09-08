@@ -1,9 +1,9 @@
 {
-  "name": "ascii-frame-generator",
+  "name": "how-was-your-day-honey",
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev --port 5000",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",

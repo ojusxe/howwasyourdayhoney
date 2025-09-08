@@ -1,8 +1,18 @@
 import '@testing-library/jest-dom'
 
-// Mock global APIs
+// Mock global APIs for client-side processing
 global.URL.createObjectURL = jest.fn(() => 'blob://test')
 global.URL.revokeObjectURL = jest.fn()
+
+// Mock WebAssembly for FFmpeg.wasm
+global.WebAssembly = {
+  instantiate: jest.fn(),
+  compile: jest.fn(),
+  Module: jest.fn()
+}
+
+// Mock SharedArrayBuffer
+global.SharedArrayBuffer = ArrayBuffer
 
 // Mock ImageData
 global.ImageData = class ImageData {
@@ -22,6 +32,22 @@ global.File = class File extends Blob {
   }
 }
 
+// Mock createImageBitmap
+global.createImageBitmap = jest.fn(() => Promise.resolve({
+  width: 100,
+  height: 100,
+  close: jest.fn()
+}))
+
+// Mock OffscreenCanvas
+global.OffscreenCanvas = jest.fn(() => ({
+  getContext: jest.fn(() => ({
+    drawImage: jest.fn(),
+    getImageData: jest.fn(() => new ImageData(100, 100)),
+    putImageData: jest.fn(),
+  }))
+}))
+
 // Setup canvas mocks
 HTMLCanvasElement.prototype.getContext = jest.fn(() => ({
   drawImage: jest.fn(),
@@ -29,7 +55,15 @@ HTMLCanvasElement.prototype.getContext = jest.fn(() => ({
   putImageData: jest.fn(),
 }))
 
-// Mock video element
-HTMLVideoElement.prototype.load = jest.fn()
-HTMLVideoElement.prototype.play = jest.fn(() => Promise.resolve())
-HTMLVideoElement.prototype.pause = jest.fn()
+// Mock document for canvas fallback
+global.document = {
+  createElement: jest.fn(() => ({
+    width: 0,
+    height: 0,
+    getContext: jest.fn(() => ({
+      drawImage: jest.fn(),
+      getImageData: jest.fn(() => new ImageData(100, 100)),
+      putImageData: jest.fn(),
+    }))
+  }))
+}

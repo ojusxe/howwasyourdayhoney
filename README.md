@@ -19,11 +19,11 @@ Upload a video file and get a ZIP archive containing ASCII art representations o
 
 - **Frame Extraction**: FFmpeg.wasm extracts PNG frames from video input in the browser
 - **ASCII Conversion**: Canvas API and JavaScript convert images to ASCII using luminance mapping
-- **Character Mapping**: Uses Ghostty-inspired character set (·~ox+=*%$@) for visual density representation
+- **Character Mapping**: Uses classic ASCII character set (·~ox+=*%$@) for visual density representation
 - **File Export**: Each frame becomes a standalone text file ready for terminal display
 - **Privacy First**: All processing happens locally - your videos never leave your browser
 
-The ASCII conversion engine uses advanced luminance calculation and character mapping techniques for quality results.
+The ASCII conversion engine uses advanced luminance calculation and character mapping techniques to create beautiful terminal art from your videos.
 
 ## Technical Stack
 

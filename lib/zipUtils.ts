@@ -1,9 +1,9 @@
 import JSZip from 'jszip';
-import { ASCIIFrame, ZipPackageOptions, ConversionSettings } from './types';
+import { ASCIIFrame, ZipPackageOptions } from './types';
 
 /**
  * ZIP Packager for ASCII frames with README generation
- * Includes proper license attribution for Ghostty-inspired logic
+ * Creates downloadable archives for "How Was Your Day Honey?" ASCII animations
  */
 export class ZipPackager {
   /**
@@ -11,7 +11,6 @@ export class ZipPackager {
    */
   async createZip(
     frames: ASCIIFrame[],
-    settings: ConversionSettings,
     options: ZipPackageOptions = { includeReadme: true, frameFormat: 'txt' }
   ): Promise<Blob> {
     const zip = new JSZip();
@@ -21,19 +20,19 @@ export class ZipPackager {
 
     // include README if requested
     if (options.includeReadme) {
-      const readmeContent = options.readmeContent || this.generateReadme(settings, frames.length);
+      const readmeContent = options.readmeContent || this.generateReadme(frames.length);
       zip.file('README.md', readmeContent);
     }
 
-    // add license attribution for ghostty-inspired logic
-    zip.file('LICENSE-ATTRIBUTION.txt', this.generateLicenseAttribution());
+    // add info file about the application
+    zip.file('ABOUT.txt', this.generateAboutFile());
 
     // add conversion metadata as json
     zip.file('metadata.json', JSON.stringify({
       totalFrames: frames.length,
-      settings,
       generatedAt: new Date().toISOString(),
-      format: options.frameFormat
+      format: options.frameFormat,
+      generator: 'How Was Your Day Honey?'
     }, null, 2));
 
     // generate compressed zip blob
@@ -90,22 +89,21 @@ export class ZipPackager {
   /**
    * Generate comprehensive README with usage instructions
    */
-  private generateReadme(settings: ConversionSettings, frameCount: number): string {
+  private generateReadme(frameCount: number): string {
     const timestamp = new Date().toISOString();
     
     return `# ASCII Frame Animation
 
 Generated on: ${timestamp}
 Total frames: ${frameCount}
+Created with: How Was Your Day Honey?
 
-## Conversion Settings
+## Animation Details
 
-- **Frame Rate**: ${settings.frameRate} FPS
-- **Resolution Scale**: ${(settings.resolutionScale * 100).toFixed(0)}%
-- **Character Set**: ${settings.characterSet}${settings.customCharacters ? ` (${settings.customCharacters})` : ''}
-- **Color Mode**: ${settings.colorMode}
-- **Background**: ${settings.background}
-${settings.twoToneColors ? `- **Two-tone Colors**: ${settings.twoToneColors.join(', ')}\n` : ''}
+- **Frame Rate**: 24 FPS (recommended)
+- **Character Set**: ·~ox+=*%$@
+- **Width**: ~100 columns
+- **Processing**: Client-side (your video never left your browser!)
 
 ## File Structure
 
@@ -152,7 +150,7 @@ README.md                   # This file
         function animate() {
             displayFrame(frames[currentFrame]);
             currentFrame = (currentFrame + 1) % frames.length;
-            setTimeout(animate, ${Math.round(1000 / settings.frameRate)}); // ${settings.frameRate} FPS
+            setTimeout(animate, 42); // ~24 FPS
         }
         
         animate();
@@ -165,7 +163,7 @@ README.md                   # This file
 
 \`\`\`javascript
 class ASCIIAnimator {
-    constructor(frames, fps = ${settings.frameRate}) {
+    constructor(frames, fps = 24) {
         this.frames = frames;
         this.fps = fps;
         this.currentFrame = 0;
@@ -210,7 +208,7 @@ const fs = require('fs');
 const path = require('path');
 
 class TerminalAnimator {
-    constructor(framesDir, fps = ${settings.frameRate}) {
+    constructor(framesDir, fps = 24) {
         this.framesDir = framesDir;
         this.fps = fps;
         this.frames = this.loadFrames();
@@ -254,7 +252,7 @@ animator.play();
 \`\`\`jsx
 import React, { useState, useEffect } from 'react';
 
-const ASCIIAnimation = ({ frames, fps = ${settings.frameRate}, autoPlay = true }) => {
+const ASCIIAnimation = ({ frames, fps = 24, autoPlay = true }) => {
     const [currentFrame, setCurrentFrame] = useState(0);
     const [isPlaying, setIsPlaying] = useState(autoPlay);
     
@@ -302,9 +300,9 @@ export default ASCIIAnimation;
 
 ## Color Support
 
-${settings.colorMode !== 'blackwhite' ? `This animation includes color data. Each frame may have an associated \`_colors.json\` file containing color information for each character.
+This animation uses beautiful ASCII characters with optional color data. Some frames may have associated \`_colors.json\` files containing color information for enhanced display.
 
-### Applying Colors
+### Applying Colors (Optional)
 
 \`\`\`javascript
 function applyColors(element, asciiContent, colorData) {
@@ -334,11 +332,10 @@ function applyColors(element, asciiContent, colorData) {
     });
 }
 \`\`\`
-` : 'This animation uses black and white ASCII characters only.'}
 
-## License
+## About
 
-This ASCII animation was generated using conversion logic inspired by the Ghostty terminal emulator project, which is licensed under the MIT License. See LICENSE-ATTRIBUTION.txt for full attribution details.
+This ASCII animation was generated using "How Was Your Day Honey?" - a web application that converts videos into beautiful ASCII art animations. See ABOUT.txt for more information.
 
 ## Support
 
@@ -347,47 +344,28 @@ For questions about displaying these ASCII frames, refer to the examples above o
   }
 
   /**
-   * Generate license attribution file
+   * Generate about file for the application
    */
-  private generateLicenseAttribution(): string {
-    return `ASCII Frame Generator - License Attribution
+  private generateAboutFile(): string {
+    return `How Was Your Day Honey? - ASCII Animation Generator
 
-This ASCII animation was generated using conversion algorithms inspired by the Ghostty terminal emulator project.
+This ASCII animation was created using "How Was Your Day Honey?" - a web application that transforms your videos into beautiful ASCII art animations.
 
-Ghostty Project Information:
-- Repository: https://github.com/ghostty-org/ghostty
-- License: MIT License
-- Original conversion logic: bin/video-to-terminal script
+Features:
+- Client-side processing (your videos never leave your browser)
+- Beautiful ASCII character mapping using ·~ox+=*%$@
+- Optimized for terminal display and retro aesthetics
+- Downloadable text files for easy sharing and playback
 
-MIT License (Ghostty)
+How to Play Your Animation:
+1. Use the provided shell scripts or commands in the README
+2. Each frame is a separate .txt file for maximum compatibility
+3. Adjust timing between frames for smooth playback
 
-Copyright (c) 2024 Ghostty Contributors
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-
-ASCII Frame Generator
-
-The ASCII Frame Generator application that created this animation is a separate
-project that uses conversion logic inspired by Ghostty's MIT-licensed algorithms.
-The generated ASCII frames and this documentation are provided as-is for your use.
+Created with love for terminal art enthusiasts!
 
 Generated on: ${new Date().toISOString()}
+Visit: https://github.com/your-repo/how-was-your-day-honey
 `;
   }
 

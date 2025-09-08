@@ -1,6 +1,6 @@
 /**
- * Client-side ASCII converter for browser environments
- * Simplified version that works with Canvas API and OffscreenCanvas
+ * Client-side ASCII converter for "How Was Your Day Honey?"
+ * Converts video frames to beautiful ASCII art using Canvas API
  */
 
 export interface ClientASCIIOptions {

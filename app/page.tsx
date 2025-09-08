@@ -38,8 +38,11 @@ export default function Home() {
   const handleProcessVideo = useCallback(async () => {
     if (!selectedFile) return;
 
+    console.log('Starting video processing for:', selectedFile.name);
+
     // Check browser compatibility
     if (typeof SharedArrayBuffer === 'undefined') {
+      console.error('SharedArrayBuffer not supported');
       setError({
         type: ErrorType.PROCESSING_ERROR,
         message: "Your browser doesn't support SharedArrayBuffer, which is required for video processing. Please enable it in your browser settings or use a different browser.",
@@ -49,6 +52,7 @@ export default function Home() {
     }
 
     if (typeof WebAssembly === 'undefined') {
+      console.error('WebAssembly not supported');
       setError({
         type: ErrorType.PROCESSING_ERROR,
         message: "Your browser doesn't support WebAssembly, which is required for video processing. Please use a modern browser.",
@@ -65,35 +69,51 @@ export default function Home() {
     try {
       // Step 1: Extract frames from video
       console.log("Starting frame extraction...");
+      setProgress(5); // Show initial progress
+      
       const frameBlobs = await extractFrames(selectedFile, (extractProgress) => {
         // Frame extraction is roughly 70% of total work
-        setProgress(Math.round(extractProgress * 0.7));
+        const totalProgress = Math.round(5 + (extractProgress * 0.65));
+        console.log('Frame extraction progress:', totalProgress + '%');
+        setProgress(totalProgress);
       });
 
       console.log(`Extracted ${frameBlobs.length} frames`);
+      setProgress(70);
+
+      if (frameBlobs.length === 0) {
+        throw new Error('No frames were extracted from the video. Please try a different video file.');
+      }
 
       // Step 2: Convert frames to ASCII
       console.log("Starting ASCII conversion...");
       const frames = await convertFramesToAscii(
         frameBlobs,
-        { width: 100 }, // Ghostty-style 100 columns
+        { width: 100, characterSet: '·~ox+=*%$@' }, // Classic ASCII character set
         (current, total) => {
           // ASCII conversion is the remaining 30%
           const conversionProgress = (current / total) * 30;
-          setProgress(Math.round(70 + conversionProgress));
+          const totalProgress = Math.round(70 + conversionProgress);
+          console.log('ASCII conversion progress:', totalProgress + '%');
+          setProgress(totalProgress);
         }
       );
 
       console.log(`Converted ${frames.length} frames to ASCII`);
 
+      if (frames.length === 0) {
+        throw new Error('Failed to convert frames to ASCII. Please try again.');
+      }
+
       setAsciiFrames(frames);
       setProgress(100);
       setAppState("complete");
+      console.log('Processing completed successfully!');
     } catch (err) {
       console.error("Processing failed:", err);
       setError({
         type: ErrorType.PROCESSING_ERROR,
-        message: err instanceof Error ? err.message : "Processing failed",
+        message: err instanceof Error ? err.message : "Processing failed. Please try again.",
         timestamp: new Date(),
       });
       setAppState("error");
@@ -147,12 +167,11 @@ export default function Home() {
       <main className="flex-1 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-4">
-            Convert Videos to ASCII Art
+            How Was Your Day Honey?
           </h1>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto mb-4">
-            Upload a short video and convert it into ASCII art frames using
-            client-side processing. Perfect for terminal animations and
-            retro-style displays.
+            Turn your videos into beautiful ASCII art animations! 
+            Upload a short video and watch it transform into retro-style terminal art.
           </p>
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 max-w-2xl mx-auto">
             <h3 className="text-sm font-semibold text-blue-900 mb-2">

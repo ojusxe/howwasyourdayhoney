@@ -65,7 +65,7 @@ Get-ChildItem frame-*.txt | ForEach-Object {
 - Total frames: ${frames.length}
 - Recommended FPS: 24
 - Character width: ~100 columns
-- Generated with Ghostty-inspired ASCII conversion
+- Generated with "How Was Your Day Honey?" ASCII converter
 
 Enjoy your ASCII animation!
 `;
@@ -73,7 +73,11 @@ Enjoy your ASCII animation!
       zip.file('README.md', readme);
 
       // Generate and download the zip
-      const content = await zip.generateAsync({ type: 'blob' });
+      const content = await zip.generateAsync({ 
+        type: 'blob',
+        compression: 'DEFLATE',
+        compressionOptions: { level: 6 }
+      });
       
       // Create download link
       const url = URL.createObjectURL(content);

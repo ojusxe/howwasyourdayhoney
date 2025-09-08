@@ -8,23 +8,24 @@ export default function DocsPage() {
 
       <main className="flex-1 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="prose prose-gray max-w-none">
-          <h1 className="text-3xl font-bold text-gray-900 mb-6">Documentation</h1>
+          <h1 className="text-3xl font-bold text-gray-900 mb-6">How Was Your Day Honey? - Documentation</h1>
           <p className="text-lg text-gray-600 mb-8">
-            Learn how to use the ASCII Frame Generator and display your converted frames.
+            Learn how to create beautiful ASCII art animations from your videos, all processed in your browser!
           </p>
 
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-8">
             <h2 className="text-lg font-semibold text-blue-900 mb-2">Quick Start</h2>
             <p className="text-blue-800">
-              Upload a video → Configure settings → Download ASCII frames → Display in your project
+              Upload a video → Process in browser → Download ASCII frames → Display anywhere!
             </p>
           </div>
 
           <section className="mb-8">
             <h2 className="text-2xl font-bold text-gray-900 mb-4">Getting Started</h2>
             <p className="text-gray-700 mb-4">
-              The ASCII Frame Generator converts short videos (10-15 seconds, up to 25MB) 
-              into ASCII art frames that can be displayed in terminals, web pages, or other applications.
+              "How Was Your Day Honey?" converts short videos (up to 15 seconds, 25MB max) 
+              into beautiful ASCII art animations. All processing happens in your browser - 
+              your videos never leave your device!
             </p>
 
             <h3 className="text-xl font-semibold text-gray-900 mb-3">Supported Formats</h3>
@@ -38,53 +39,48 @@ export default function DocsPage() {
             <h3 className="text-xl font-semibold text-gray-900 mb-3">Usage Instructions</h3>
             <ol className="list-decimal list-inside text-gray-700 space-y-2">
               <li>Upload a video file using drag-and-drop or file selection</li>
-              <li>Configure conversion settings (frame rate, resolution, colors)</li>
-              <li>Click "Start Conversion" and wait for processing to complete</li>
+              <li>Click "Start Conversion" and watch the magic happen in your browser</li>
+              <li>Preview your ASCII animation with the built-in player</li>
               <li>Download the ZIP file containing your ASCII frames and documentation</li>
             </ol>
           </section>
 
           <section className="mb-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Conversion Settings</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">How It Works</h2>
             
-            <div className="grid md:grid-cols-2 gap-6 mb-6">
-              <div className="bg-gray-50 rounded-lg p-4">
-                <h3 className="font-semibold text-gray-900 mb-2">Frame Rate</h3>
-                <p className="text-sm text-gray-600 mb-2">Controls animation smoothness and file size</p>
-                <ul className="text-sm text-gray-700 space-y-1">
-                  <li><strong>12 FPS:</strong> Smaller files, choppy animation</li>
-                  <li><strong>24 FPS:</strong> Larger files, smooth animation</li>
-                </ul>
+            <div className="grid md:grid-cols-3 gap-6 mb-6">
+              <div className="bg-blue-50 rounded-lg p-4 text-center">
+                <div className="text-2xl mb-2">🎥</div>
+                <h3 className="font-semibold text-gray-900 mb-2">1. Upload Video</h3>
+                <p className="text-sm text-gray-600">
+                  Drag & drop or select your video file. Supports MP4 and WebM formats.
+                </p>
               </div>
 
-              <div className="bg-gray-50 rounded-lg p-4">
-                <h3 className="font-semibold text-gray-900 mb-2">Resolution Scale</h3>
-                <p className="text-sm text-gray-600 mb-2">Affects detail level and processing time</p>
-                <ul className="text-sm text-gray-700 space-y-1">
-                  <li><strong>50%:</strong> Fast processing, less detail</li>
-                  <li><strong>75%:</strong> Balanced quality and speed</li>
-                  <li><strong>100%:</strong> Full detail, slower processing</li>
-                </ul>
+              <div className="bg-green-50 rounded-lg p-4 text-center">
+                <div className="text-2xl mb-2">⚡</div>
+                <h3 className="font-semibold text-gray-900 mb-2">2. Browser Magic</h3>
+                <p className="text-sm text-gray-600">
+                  FFmpeg.wasm extracts frames and converts them to ASCII art using luminance mapping.
+                </p>
               </div>
 
-              <div className="bg-gray-50 rounded-lg p-4">
-                <h3 className="font-semibold text-gray-900 mb-2">Character Set</h3>
-                <p className="text-sm text-gray-600 mb-2">Characters used for ASCII art</p>
-                <ul className="text-sm text-gray-700 space-y-1">
-                  <li><strong>Default:</strong> <code className="bg-white px-1 rounded"> .:-=+*#%@</code></li>
-                  <li><strong>Custom:</strong> Define your own character set</li>
-                </ul>
+              <div className="bg-purple-50 rounded-lg p-4 text-center">
+                <div className="text-2xl mb-2">📦</div>
+                <h3 className="font-semibold text-gray-900 mb-2">3. Download & Enjoy</h3>
+                <p className="text-sm text-gray-600">
+                  Get a ZIP with ASCII frames, usage examples, and complete documentation.
+                </p>
               </div>
+            </div>
 
-              <div className="bg-gray-50 rounded-lg p-4">
-                <h3 className="font-semibold text-gray-900 mb-2">Color Modes</h3>
-                <p className="text-sm text-gray-600 mb-2">How colors are handled in output</p>
-                <ul className="text-sm text-gray-700 space-y-1">
-                  <li><strong>Black & White:</strong> Monochrome ASCII</li>
-                  <li><strong>Two-tone:</strong> Two custom colors</li>
-                  <li><strong>Full-color:</strong> RGB color approximation</li>
-                </ul>
+            <div className="bg-gray-50 rounded-lg p-4">
+              <h3 className="font-semibold text-gray-900 mb-2">Character Set</h3>
+              <p className="text-sm text-gray-600 mb-2">We use a carefully crafted character set for optimal visual density:</p>
+              <div className="bg-white px-3 py-2 rounded font-mono text-lg tracking-wider">
+                ·~ox+=*%$@
               </div>
+              <p className="text-xs text-gray-500 mt-2">From lightest (·) to darkest (@) for perfect luminance mapping</p>
             </div>
           </section>
 
@@ -287,7 +283,7 @@ animator.play();`}
 │   ├── frame_0001.txt          # ASCII content for frame 1
 │   └── ...
 ├── metadata.json               # Conversion settings and info
-├── LICENSE-ATTRIBUTION.txt     # License information
+├── ABOUT.txt                   # About the application
 └── README.md                   # Complete usage guide`}
             </pre>
 
@@ -297,13 +293,7 @@ animator.play();`}
             <pre className="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto text-sm mb-6">
 {`{
   "totalFrames": 24,
-  "settings": {
-    "frameRate": 12,
-    "resolutionScale": 0.75,
-    "characterSet": "default",
-    "colorMode": "blackwhite",
-    "background": "transparent"
-  },
+  "generator": "How Was Your Day Honey?",
   "generatedAt": "2024-01-15T10:30:00.000Z",
   "format": "txt"
 }`}
@@ -354,29 +344,18 @@ animator.play();`}
           </section>
 
           <section className="mb-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">License & Attribution</h2>
-            <div className="bg-gray-50 border border-gray-200 rounded-lg p-6">
-              <p className="text-gray-700 mb-4">
-                This project uses conversion logic inspired by the{' '}
-                <a 
-                  href="https://github.com/ghostty-org/ghostty" 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="text-blue-600 hover:text-blue-800 underline"
-                >
-                  Ghostty terminal emulator
-                </a>
-                , which is licensed under the MIT License.
-              </p>
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">Privacy & Security</h2>
+            <div className="bg-green-50 border border-green-200 rounded-lg p-6">
+              <h3 className="font-semibold text-green-900 mb-3">🔒 Your Privacy Matters</h3>
+              <ul className="text-green-800 space-y-2">
+                <li>• <strong>No uploads:</strong> Your videos never leave your browser</li>
+                <li>• <strong>No tracking:</strong> We don't collect or store any personal data</li>
+                <li>• <strong>No servers:</strong> All processing happens on your device</li>
+                <li>• <strong>No limits:</strong> Process as many videos as you want</li>
+              </ul>
               
-              <p className="text-gray-700 mb-4">
-                The ASCII conversion algorithms use Manhattan distance color thresholding 
-                and character mapping techniques adapted from Ghostty's video-to-terminal script.
-              </p>
-
-              <p className="text-sm text-gray-600">
-                Full license attribution is included in every downloaded ZIP file 
-                as LICENSE-ATTRIBUTION.txt.
+              <p className="text-green-700 mt-4 text-sm">
+                This is how video processing should be - private, secure, and entirely under your control.
               </p>
             </div>
           </section>
