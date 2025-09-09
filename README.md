@@ -6,14 +6,75 @@ An ASCII animation generation app that converts videos into ASCII art frames and
 
 ## Client-Side Processing Flow
 
-```
-Video Upload → Frame Extraction → ASCII Conversion → TXT File Creation → ZIP Packaging → Download Ready
-      ↓              ↓                   ↓                 ↓                ↓              ↓
-   Browser        FFmpeg.wasm       Canvas API        JavaScript        JSZip          Browser
-  Validation      PNG Frames       ASCII Frames      Individual TXT    ZIP Archive     Download
-```
+![Logo](public/workflow.png)
 
-Upload a video file and get a ZIP archive containing ASCII art representations of each frame as individual text files - all processed locally in your browser.
+```mermaid
+flowchart TD
+    A[User uploads video file] --> B{File validation}
+    B -->|Invalid format/size| C[Show error message]
+    B -->|Valid| D[UploadForm.tsx: handleFileUpload]
+
+    D --> E[app/page.tsx: handleFileSelect]
+    E --> F[Set selectedFile state]
+    F --> G[Show VideoSettings component]
+
+    G --> H[User clicks 'Start Conversion']
+    H --> I[app/page.tsx: handleProcessVideo]
+
+    I --> J{Browser compatibility check}
+    J -->|No WebAssembly/SharedArrayBuffer| K[Show compatibility error]
+    J -->|Compatible| L[Set appState to 'processing']
+
+    L --> M[lib/clientVideoProcessor.ts: extractFrames]
+    M --> N[ClientVideoProcessor.initialize]
+    N --> O[FFmpeg.load from CDN]
+    O --> P[FFmpeg.writeFile: input.mp4]
+
+    P --> Q[FFmpeg.exec: extract frames at 24 FPS]
+    Q --> R[Generate PNG frame files]
+    R --> S[Read frames as Blob arrays]
+    S --> T[Progress updates: 5% to 70%]
+
+    T --> U[lib/clientAsciiConverter.ts: convertFramesToAscii]
+    U --> V[For each frame Blob]
+    V --> W[convertFrameToAscii]
+
+    W --> X[createImageBitmap from Blob]
+    X --> Y[Create Canvas/OffscreenCanvas]
+    Y --> Z[Draw image with aspect ratio correction]
+    Z --> AA[Get ImageData pixel array]
+
+    AA --> BB[For each pixel: Apply brightness/contrast]
+    BB --> CC[Calculate luminance using RGB formula]
+    CC --> DD[Apply gamma correction for visual perception]
+    DD --> EE[Map to OPTIMIZED_CHARACTER_SET]
+    EE --> FF[Build ASCII string with newlines]
+
+    FF --> GG[Progress updates: 70% to 100%]
+    GG --> HH[Set asciiFrames state]
+    HH --> II[Set appState to 'complete']
+
+    II --> JJ[Show PreviewPlayer component]
+    JJ --> KK[Show ClientDownloadButton]
+
+    KK --> LL[User clicks Download]
+    LL --> MM[ClientDownloadButton: generateZip]
+    MM --> NN[JSZip: Create new archive]
+    NN --> OO[Add numbered frame text files]
+    OO --> PP[Add README.md with instructions]
+    PP --> QQ[Generate compressed ZIP blob]
+    QQ --> RR[Create download link & trigger download]
+
+    RR --> SS[User gets ASCII animation ZIP file]
+
+    style A fill:#e1f5fe
+    style SS fill:#c8e6c9
+    style C fill:#ffcdd2
+    style K fill:#ffcdd2
+    style M fill:#fff3e0
+    style U fill:#f3e5f5
+    style MM fill:#e8f5e8
+```
 
 ## Engine Details
 

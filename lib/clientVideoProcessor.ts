@@ -63,7 +63,9 @@ export class ClientVideoProcessor {
         
         try {
           const frameData = await this.ffmpeg.readFile(frameName);
-          const blob = new Blob([frameData], { type: 'image/png' });
+          // FileData is already a Uint8Array, but we need to ensure it's compatible with Blob
+          const uint8Array = frameData instanceof Uint8Array ? frameData : new Uint8Array(frameData as any);
+          const blob = new Blob([uint8Array.buffer], { type: 'image/png' });
           frames.push(blob);
           frameIndex++;
         } catch (error) {
