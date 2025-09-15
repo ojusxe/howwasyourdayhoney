@@ -1,4 +1,3 @@
-// Core types for "How Was Your Day Honey?" ASCII animation generator
 
 // ASCII frame data structure
 export interface ASCIIFrame {
@@ -15,7 +14,7 @@ export interface ColorPixel {
   char: string;
   color: string;
   background?: string;
-  colorClass?: string; // For color classification
+  colorClass?: string;
 }
 
 // Frame extracted from video source
