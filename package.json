@@ -1,8 +1,15 @@
 {
   "name": "how-was-your-day-honey",
+  "description": "WASM based ASCII animation generation",
   "version": "0.1.0",
   "private": true,
-  "packageManager": "pnpm@9.12.3",
+  "author": "Ojus G.",
+  "keywords": ["ascii","video","animation", "converter","ffmpeg","webassembly"],
+  "engines": {
+    "pnpm": ">=9",
+    "node": ">=18"
+  },
+  "packageManager": "pnpm@9.15.5",
   "scripts": {
     "dev": "next dev --port 5000",
     "build": "next build",
@@ -19,7 +26,6 @@
     "clsx": "^2.1.1",
     "jszip": "^3.10.1",
     "lucide-react": "^0.542.0",
-    "motion": "^12.23.12",
     "next": "15.0.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
