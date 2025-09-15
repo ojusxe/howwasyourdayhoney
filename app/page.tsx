@@ -2,7 +2,6 @@
 
 import { useState, useCallback } from "react";
 import Header from "@/components/Header";
-import Footer from "@/components/Footer";
 import UploadForm from "@/components/UploadForm";
 import ProgressBar from "@/components/ProgressBar";
 import PreviewPlayer from "@/components/PreviewPlayer";
@@ -283,8 +282,6 @@ export default function Home() {
           )}
         </div>
       </main>
-
-      <Footer />
     </div>
   );
 }

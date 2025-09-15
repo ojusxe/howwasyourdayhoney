@@ -1,14 +1,9 @@
 import JSZip from 'jszip';
 import { ASCIIFrame, ZipPackageOptions } from './types';
 
-/**
- * ZIP Packager for ASCII frames with README generation
- * Creates downloadable archives for "How Was Your Day Honey?" ASCII animations
- */
+// ZIP Packager for ASCII frames
+
 export class ZipPackager {
-  /**
-   * Create ZIP file containing ASCII frames and documentation
-   */
   async createZip(
     frames: ASCIIFrame[],
     options: ZipPackageOptions = { includeReadme: true, frameFormat: 'txt' }
@@ -45,9 +40,6 @@ export class ZipPackager {
     });
   }
 
-  /**
-   * Add frames to ZIP in specified format
-   */
   private async addFramesToZip(
     zip: JSZip,
     frames: ASCIIFrame[],
@@ -86,9 +78,9 @@ export class ZipPackager {
     }
   }
 
-  /**
-   * Generate comprehensive README with usage instructions
-   */
+
+   // Generate README with usage instructions
+
   private generateReadme(frameCount: number): string {
     const timestamp = new Date().toISOString();
     

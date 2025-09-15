@@ -1,7 +1,4 @@
-/**
- * Client-side ASCII converter for "How Was Your Day Honey?"
- * Converts video frames to high-quality ASCII art using optimized algorithms
- */
+// Client-side converter"
 
 import { OPTIMIZED_CHARACTER_SET } from './types';
 
@@ -17,7 +14,7 @@ export async function convertFrameToAscii(
   options: ClientASCIIOptions = {}
 ): Promise<string> {
   const { 
-    width = 120, // Increased default width for better detail
+    width = 120,
     characterSet = OPTIMIZED_CHARACTER_SET,
     contrast = 1.0,
     brightness = 0
