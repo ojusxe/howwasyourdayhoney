@@ -406,8 +406,6 @@ animator.play();`}
           </section>
         </div>
       </main>
-
-      <Footer />
     </div>
   );
 }
