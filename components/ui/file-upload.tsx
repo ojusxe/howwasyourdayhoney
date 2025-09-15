@@ -46,11 +46,11 @@ export const FileUpload = ({
     multiple: false,
     noClick: true,
     accept: {
-      'video/mp4': ['.mp4'],
-      'video/webm': ['.webm'],
-      'video/avi': ['.avi'],
-      'video/mov': ['.mov'],
-      'video/quicktime': ['.mov']
+      "video/mp4": [".mp4"],
+      "video/webm": [".webm"],
+      "video/avi": [".avi"],
+      "video/mov": [".mov"],
+      "video/quicktime": [".mov"],
     },
     maxSize: 50 * 1024 * 1024, // 50MB
     onDrop: handleFileChange,
