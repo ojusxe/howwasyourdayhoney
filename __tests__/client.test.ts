@@ -148,4 +148,46 @@ describe('Character Set', () => {
     expect(chars[0]).toBe(' '); // Lightest (space)
     expect(chars[chars.length - 1]).toBe('$'); // Darkest
   });
+
+  it('should work with custom character sets', async () => {
+    const customCharSet = '.:-=+*#%@';
+    
+    const mockImageBitmap = {
+      width: 10,
+      height: 10,
+      close: jest.fn()
+    };
+
+    const mockContext = {
+      drawImage: jest.fn(),
+      getImageData: jest.fn(() => ({
+        data: new Uint8ClampedArray(10 * 10 * 4).fill(128), // Mid-gray pixels
+        width: 10,
+        height: 10
+      }))
+    };
+
+    const mockCanvas = {
+      getContext: jest.fn(() => mockContext)
+    };
+
+    (global.createImageBitmap as jest.Mock).mockResolvedValue(mockImageBitmap);
+    (global.OffscreenCanvas as jest.Mock).mockImplementation(() => mockCanvas);
+
+    const mockBlob = new Blob(['test'], { type: 'image/png' });
+    
+    const result = await convertFrameToAscii(mockBlob, {
+      characterSet: customCharSet,
+      width: 10
+    });
+
+    expect(result).toBeDefined();
+    // Should only contain characters from the custom set
+    const resultChars = new Set(result.replace(/\n/g, ''));
+    const customChars = new Set(customCharSet);
+    
+    for (const char of resultChars) {
+      expect(customChars.has(char)).toBe(true);
+    }
+  });
 });

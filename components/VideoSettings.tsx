@@ -1,11 +1,14 @@
 'use client';
 
 import { useState } from 'react';
+import { OPTIMIZED_CHARACTER_SET } from '@/lib/types';
 
 export interface VideoProcessingSettings {
   contrast: number;
   brightness: number;
   width: number;
+  useCustomCharacterSet: boolean;
+  customCharacterSet: string;
 }
 
 interface VideoSettingsProps {
@@ -16,11 +19,26 @@ interface VideoSettingsProps {
 
 export default function VideoSettings({ settings, onSettingsChange, disabled }: VideoSettingsProps) {
   const [isExpanded, setIsExpanded] = useState(false);
+  const [characterSetError, setCharacterSetError] = useState<string>('');
 
   const updateSetting = <K extends keyof VideoProcessingSettings>(
     key: K,
     value: VideoProcessingSettings[K]
   ) => {
+    // Validate custom character set
+    if (key === 'customCharacterSet') {
+      const charSet = value as string;
+      if (charSet.length < 2) {
+        setCharacterSetError('Character set must have at least 2 characters');
+      } else if (charSet.length > 100) {
+        setCharacterSetError('Character set cannot exceed 100 characters');
+      } else if (new Set(charSet).size !== charSet.length) {
+        setCharacterSetError('Character set cannot contain duplicate characters');
+      } else {
+        setCharacterSetError('');
+      }
+    }
+    
     onSettingsChange({ ...settings, [key]: value });
   };
 
@@ -109,6 +127,83 @@ export default function VideoSettings({ settings, onSettingsChange, disabled }: 
             </div>
           </div>
 
+          <div className="border-t border-gray-200 pt-4">
+            <div className="flex items-center space-x-2 mb-3">
+              <input
+                type="checkbox"
+                id="useCustomCharacterSet"
+                checked={settings.useCustomCharacterSet}
+                onChange={(e) => updateSetting('useCustomCharacterSet', e.target.checked)}
+                disabled={disabled}
+                className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
+              />
+              <label htmlFor="useCustomCharacterSet" className="text-xs font-medium text-gray-700">
+                Use Custom Character Set
+              </label>
+            </div>
+
+            {settings.useCustomCharacterSet && (
+              <div className="space-y-3">
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="text-xs font-medium text-gray-700">
+                      Custom Characters ({settings.customCharacterSet.length} chars)
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => updateSetting('customCharacterSet', OPTIMIZED_CHARACTER_SET)}
+                      disabled={disabled}
+                      className="text-xs text-blue-600 hover:text-blue-800 underline"
+                    >
+                      Reset to Default
+                    </button>
+                  </div>
+                  <textarea
+                    value={settings.customCharacterSet}
+                    onChange={(e) => updateSetting('customCharacterSet', e.target.value)}
+                    disabled={disabled}
+                    placeholder="Enter your custom characters (e.g., .:-=+*#%@)"
+                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                    rows={3}
+                  />
+                  <div className="flex justify-between text-xs text-gray-500 mt-1">
+                    <span>Min: 2 characters</span>
+                    <span>Max: 100 characters</span>
+                  </div>
+                  {characterSetError && (
+                    <p className="text-xs text-red-600 mt-1">{characterSetError}</p>
+                  )}
+                </div>
+
+                <div className="bg-yellow-50 border border-yellow-200 rounded p-3">
+                  <h5 className="text-xs font-medium text-yellow-900 mb-2">Character Set Examples:</h5>
+                  <div className="space-y-1 text-xs text-yellow-800">
+                    <div>
+                      <strong>Classic:</strong> 
+                      <code className="ml-1 bg-white px-1 rounded">.:-=+*#%@</code>
+                    </div>
+                    <div>
+                      <strong>Minimal:</strong> 
+                      <code className="ml-1 bg-white px-1 rounded"> .-+#@</code>
+                    </div>
+                    <div>
+                      <strong>Numbers:</strong> 
+                      <code className="ml-1 bg-white px-1 rounded"> 0123456789</code>
+                    </div>
+                    <div>
+                      <strong>Letters:</strong> 
+                      <code className="ml-1 bg-white px-1 rounded"> abcdefghijklmnopqrstuvwxyz</code>
+                    </div>
+                    <div>
+                      <strong>Symbols:</strong> 
+                      <code className="ml-1 bg-white px-1 rounded"> ░▒▓█</code>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
           <div className="bg-blue-50 border border-blue-200 rounded p-3">
             <h4 className="text-xs font-medium text-blue-900 mb-1">Tips for Best Results:</h4>
             <ul className="text-xs text-blue-800 space-y-1">
@@ -116,6 +211,7 @@ export default function VideoSettings({ settings, onSettingsChange, disabled }: 
               <li>• <strong>Low contrast videos:</strong> Increase contrast (1.3 to 1.8)</li>
               <li>• <strong>Detailed content:</strong> Use higher width (140-160)</li>
               <li>• <strong>Simple animations:</strong> Use lower width (80-100)</li>
+              <li>• <strong>Custom characters:</strong> Order from lightest to darkest for best results</li>
             </ul>
           </div>
         </div>

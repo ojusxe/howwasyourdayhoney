@@ -76,12 +76,43 @@ export default function DocsPage() {
             </div>
 
             <div className="bg-gray-50 rounded-lg p-4">
-              <h3 className="font-semibold text-gray-900 mb-2">Optimized Character Set</h3>
-              <p className="text-sm text-gray-600 mb-2">We use a 70+ character set optimized for maximum visual accuracy:</p>
-              <div className="bg-white px-3 py-2 rounded font-mono text-sm tracking-tight break-all">
-                {' .\'`^",:;Il!i><~+_-?][}{1)(|\\/tfjrxnuvczXYUJCLQ0OZmwqpdbkhao*#MW&8%B@$'}
+              <h3 className="font-semibold text-gray-900 mb-2">Character Set Options</h3>
+              <p className="text-sm text-gray-600 mb-3">Choose from our optimized set or create your own:</p>
+              
+              <div className="space-y-3">
+                <div>
+                  <h4 className="text-xs font-medium text-gray-700 mb-1">Default (70+ characters):</h4>
+                  <div className="bg-white px-3 py-2 rounded font-mono text-xs tracking-tight break-all">
+                    {' .\'`^",:;Il!i><~+_-?][}{1)(|\\/tfjrxnuvczXYUJCLQ0OZmwqpdbkhao*#MW&8%B@$'}
+                  </div>
+                </div>
+                
+                <div>
+                  <h4 className="text-xs font-medium text-gray-700 mb-1">Custom Examples:</h4>
+                  <div className="grid grid-cols-2 gap-2 text-xs">
+                    <div>
+                      <span className="text-gray-500">Classic:</span>
+                      <code className="ml-1 bg-white px-1 rounded">.:-=+*#%@</code>
+                    </div>
+                    <div>
+                      <span className="text-gray-500">Numbers:</span>
+                      <code className="ml-1 bg-white px-1 rounded"> 0123456789</code>
+                    </div>
+                    <div>
+                      <span className="text-gray-500">Letters:</span>
+                      <code className="ml-1 bg-white px-1 rounded"> abcdefg</code>
+                    </div>
+                    <div>
+                      <span className="text-gray-500">Blocks:</span>
+                      <code className="ml-1 bg-white px-1 rounded"> ░▒▓█</code>
+                    </div>
+                  </div>
+                </div>
               </div>
-              <p className="text-xs text-gray-500 mt-2">From lightest (space) to darkest ($) with gamma correction for optimal visual perception</p>
+              
+              <p className="text-xs text-gray-500 mt-2">
+                💡 Tip: Order characters from lightest to darkest for best results
+              </p>
             </div>
           </section>
 

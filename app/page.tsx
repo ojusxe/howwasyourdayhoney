@@ -10,7 +10,7 @@ import ClientDownloadButton from "@/components/ClientDownloadButton";
 import ErrorDisplay from "@/components/ErrorDisplay";
 import { extractFrames } from "@/lib/clientVideoProcessor";
 import { convertFramesToAscii } from "@/lib/clientAsciiConverter";
-import { ErrorType } from "@/lib/types";
+import { ErrorType, OPTIMIZED_CHARACTER_SET } from "@/lib/types";
 import VideoSettings, { VideoProcessingSettings } from "@/components/VideoSettings";
 
 type AppState = "idle" | "processing" | "complete" | "error";
@@ -30,7 +30,9 @@ export default function Home() {
   const [videoSettings, setVideoSettings] = useState<VideoProcessingSettings>({
     contrast: 1.2,
     brightness: 0,
-    width: 120
+    width: 120,
+    useCustomCharacterSet: false,
+    customCharacterSet: OPTIMIZED_CHARACTER_SET
   });
 
   const handleFileSelect = useCallback((file: File) => {
@@ -98,7 +100,10 @@ export default function Home() {
         { 
           width: videoSettings.width,
           contrast: videoSettings.contrast,
-          brightness: videoSettings.brightness
+          brightness: videoSettings.brightness,
+          characterSet: videoSettings.useCustomCharacterSet 
+            ? videoSettings.customCharacterSet 
+            : OPTIMIZED_CHARACTER_SET
         },
         (current, total) => {
           // ASCII conversion is the remaining 30%
@@ -203,6 +208,9 @@ export default function Home() {
               </p>
               <p className="text-xs text-blue-600 mt-2">
                 <strong>Works with:</strong> Any animated content - movies, games, animations, screen recordings
+              </p>
+              <p className="text-xs text-blue-600">
+                <strong>Customizable:</strong> Use your own characters for unique ASCII art styles
               </p>
             </div>
           </div>

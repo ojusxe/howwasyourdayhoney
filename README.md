@@ -11,7 +11,7 @@ An ASCII animation generation app that converts videos into ASCII art frames and
 ```mermaid
 flowchart TD
     A[User uploads video file] --> B{File validation}
-    B -->|Invalid format/size| C[Show error message]
+    B -->|Invalid format/size| C[Show error message]    
     B -->|Valid| D[UploadForm.tsx: handleFileUpload]
 
     D --> E[app/page.tsx: handleFileSelect]
@@ -80,7 +80,7 @@ flowchart TD
 
 - **Frame Extraction**: FFmpeg.wasm extracts PNG frames from video input in the browser
 - **ASCII Conversion**: Canvas API and JavaScript convert images to ASCII using luminance mapping
-- **Character Mapping**: Uses optimized ASCII character set for maximum visual accuracy across all video types
+- **Character Mapping**: Uses optimized 70+ character set by default, with option for custom character sets
 - **File Export**: Each frame becomes a standalone text file ready for terminal display
 - **Privacy First**: All processing happens locally - your videos never leave your browser
 
