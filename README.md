@@ -1,6 +1,8 @@
-# How Was Your Day Honey
+# How Was Your Day Honey <img width="63" height="63" alt="3" src="https://github.com/user-attachments/assets/fcc3b576-ee86-431d-86f7-a916328d302d" />
+ 
+<img width="63" height="63" alt="4" src="https://github.com/user-attachments/assets/c432c4cb-24c2-4801-8f6e-ad20a3feaa60" />
 
-![Logo](public/hwydh.png)
+
 
 An ASCII animation generation app that converts videos into ASCII art frames and exports them as downloadable text files.
 
