@@ -370,9 +370,9 @@ export default function Home() {
               {/* Watermark */}
               <p className="text-[10px] text-sm font-mono tracking-wide opacity-80">
                 <span className="text-white">built by</span>{" "}
-                <span className="text-green-400">ojus</span>{" "}
+                <span className="text-green-400"><a href="https://ojus.fyi" target="_blank" rel="noopener noreferrer">ojus</a></span>{" "}
                 <span className="text-white">for</span>{" "}
-                <span className="text-pink-400">clueso</span>{" "}
+                <span className="text-pink-400"><a href="https://clueso.io" target="_blank" rel="noopener noreferrer">clueso</a></span>{" "}
                 <span className="text-red-400">&lt;3</span>
               </p>
             </div>
