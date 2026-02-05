@@ -39,6 +39,7 @@ interface BackgroundMediaProps {
   type?: MediaType
   src: string
   alt?: string
+  children?: React.ReactNode
 }
 
 export const BackgroundMedia: React.FC<BackgroundMediaProps> = ({
@@ -46,6 +47,7 @@ export const BackgroundMedia: React.FC<BackgroundMediaProps> = ({
   type = "image",
   src,
   alt = "",
+  children,
 }) => {
   const [isPlaying, setIsPlaying] = useState(true)
   const mediaRef = useRef<HTMLVideoElement | null>(null)
@@ -73,6 +75,7 @@ export const BackgroundMedia: React.FC<BackgroundMediaProps> = ({
           ref={mediaRef}
           aria-hidden="true"
           muted
+          loop
           className="absolute inset-0 h-full w-full object-cover transition-opacity duration-300 pointer-events-none"
           autoPlay
           playsInline
@@ -96,6 +99,9 @@ export const BackgroundMedia: React.FC<BackgroundMediaProps> = ({
   return (
     <div className={mediaClasses}>
       {renderMedia()}
+      <div className="relative z-20 h-full w-full">
+        {children}
+      </div>
       {type === "video" && (
         <button
           aria-label={isPlaying ? "Pause video" : "Play video"}
