@@ -9,6 +9,7 @@ import ProcessingControls from "@/components/ProcessingControls";
 import ClientDownloadButton from "@/components/ClientDownloadButton";
 import { useVideoProcessor } from "@/hooks/useVideoProcessor";
 import { BackgroundMedia } from "@/components/ui/bg-media";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import GettingStarted from "@/components/docs/GettingStarted";
 import HowItWorks from "@/components/docs/HowItWorks";
 import Troubleshooting from "@/components/docs/Troubleshooting";
@@ -139,19 +140,8 @@ export default function Home() {
   // Upload content
   const renderUploadContent = () => (
     <div className="space-y-4 w-full">
-      <div className="flex items-center gap-4 mb-2">
-        <button
-          onClick={() => navigateTo("landing")}
-          className="text-xs md:text-sm tracking-widest opacity-70 hover:opacity-100 transition-opacity font-mono flex items-center gap-2"
-        >
-          ← BACK
-        </button>
-        <div className="h-px flex-1 bg-white/20" />
-        <span className="text-xs tracking-widest opacity-60 font-mono">STEP 1: UPLOAD</span>
-      </div>
-
       {error && (
-        <div className="bg-red-900/50 border border-red-500/50 backdrop-blur-sm rounded-lg p-4">
+        <div className="bg-red-900/60 border border-red-500/50 backdrop-blur-md rounded-lg p-4">
           <ErrorDisplay
             error={error}
             onRetry={handleRetry}
@@ -160,7 +150,7 @@ export default function Home() {
         </div>
       )}
 
-      <div className="bg-black/40 backdrop-blur-sm border border-white/20 rounded-lg p-4">
+      <div className="bg-black/60 backdrop-blur-md border border-white/20 rounded-lg p-4">
         <UploadForm
           onFileSelect={handleFileSelect}
           disabled={isProcessing}
@@ -169,7 +159,7 @@ export default function Home() {
       </div>
 
       {selectedFile && (
-        <div className="bg-black/40 backdrop-blur-sm border border-white/20 rounded-lg p-4">
+        <div className="bg-black/60 backdrop-blur-md border border-white/20 rounded-lg p-4">
           <h3 className="text-xs font-mono tracking-widest text-green-400 mb-3">SETTINGS</h3>
           <VideoSettings
             settings={videoSettings}
@@ -209,7 +199,7 @@ export default function Home() {
         </h2>
       </div>
       
-      <div className="bg-black/40 backdrop-blur-sm border border-white/20 rounded-lg p-6">
+      <div className="bg-black/60 backdrop-blur-md border border-white/20 rounded-lg p-6">
         <ProgressBar {...getProgressProps()} />
       </div>
 
@@ -222,30 +212,19 @@ export default function Home() {
   // Docs content - inline documentation
   const renderDocsContent = () => (
     <div className="space-y-6 w-full max-w-3xl overflow-y-auto max-h-[70vh]">
-      <div className="flex items-center gap-4 mb-2">
-        <button
-          onClick={() => navigateTo("landing")}
-          className="text-xs md:text-sm tracking-widest opacity-70 hover:opacity-100 transition-opacity font-mono flex items-center gap-2"
-        >
-          ← BACK
-        </button>
-        <div className="h-px flex-1 bg-white/20" />
-        <span className="text-xs tracking-widest opacity-60 font-mono">DOCUMENTATION</span>
-      </div>
-
-      <div className="bg-black/40 backdrop-blur-sm border border-white/20 rounded-lg p-6 space-y-6">
+      <div className="bg-black/60 backdrop-blur-md border border-white/20 rounded-lg p-6 space-y-6">
         <GettingStarted />
       </div>
 
-      <div className="bg-black/40 backdrop-blur-sm border border-white/20 rounded-lg p-6 space-y-6">
+      <div className="bg-black/60 backdrop-blur-md border border-white/20 rounded-lg p-6 space-y-6">
         <HowItWorks />
       </div>
 
-      <div className="bg-black/40 backdrop-blur-sm border border-white/20 rounded-lg p-6 space-y-6">
+      <div className="bg-black/60 backdrop-blur-md border border-white/20 rounded-lg p-6 space-y-6">
         <Troubleshooting />
       </div>
 
-      <div className="bg-black/40 backdrop-blur-sm border border-green-500/30 rounded-lg p-6">
+      <div className="bg-black/60 backdrop-blur-md border border-green-500/30 rounded-lg p-6">
         <h3 className="text-lg font-bold text-green-400 mb-4 font-mono">Privacy & Security</h3>
         <ul className="space-y-2 text-sm text-gray-300 font-mono">
           <li className="flex items-start gap-2">
@@ -281,33 +260,55 @@ export default function Home() {
     }
   };
 
+  // Determine if background video should play based on current view
+  const shouldPlayBgVideo = currentView === "landing" || currentView === "processing";
+
   return (
     <div className="overflow-hidden h-screen w-screen bg-black">
-      <BackgroundMedia variant="dark" type="video" src="/demo2.mp4">
+      <BackgroundMedia variant="dark" type="video" src="/demo2.mp4" shouldPlay={shouldPlayBgVideo}>
         {/* Terminal Overlay UI */}
         <div className="relative h-full w-full font-mono text-white p-4 md:p-8 flex flex-col justify-between z-20 select-none">
           
           {/* Top Info Bar */}
           <div className="flex flex-row justify-between items-start w-full">
-            {/* Top Left - Conditional based on view */}
-            {currentView === "player" ? (
-              <div className="space-y-1 text-xs md:text-sm tracking-widest">
-                <p className="text-green-400">FRAME_{String(currentFrameIndex + 1).padStart(3, '0')}</p>
-                <p className="opacity-70">{asciiFrames.length} TOTAL</p>
+            {/* Top Left - Frame info with back button below for non-landing views */}
+            <div className="space-y-1 text-xs md:text-sm tracking-widest">
+              <p className={currentView === "player" ? "text-green-400" : "opacity-70"}>
+                {currentView === "player" ? `FRAME_${String(currentFrameIndex + 1).padStart(3, '0')}` : "FRAME_001"}
+              </p>
+              <p className="opacity-70">{currentView === "player" ? `${asciiFrames.length} TOTAL` : "ASCII_GEN"}</p>
+              <p className="opacity-70">00:00:00:00</p>
+              {currentView !== "landing" && (
                 <button
-                  onClick={() => navigateTo("upload")}
+                  onClick={() => {
+                    if (currentView === "player") handleRetry();
+                    navigateTo("landing");
+                  }}
                   className="opacity-70 hover:opacity-100 transition-opacity flex items-center gap-1 mt-2"
                 >
                   ← BACK
                 </button>
-              </div>
-            ) : (
-              <div className="space-y-1 text-xs md:text-sm tracking-widest opacity-70">
-                <p>FRAME_001</p>
-                <p>ASCII_GEN</p>
-                <p>00:00:00:00</p>
-              </div>
-            )}
+              )}
+            </div>
+
+            {/* Top Center - View heading */}
+            <div className="absolute left-1/2 -translate-x-1/2 text-center">
+              {currentView === "landing" && (
+                <p className="text-xs md:text-sm tracking-widest opacity-60 font-mono">VIDEO → ASCII</p>
+              )}
+              {currentView === "upload" && (
+                <p className="text-xs md:text-sm tracking-widest opacity-60 font-mono">STEP 1: UPLOAD</p>
+              )}
+              {currentView === "processing" && (
+                <p className="text-xs md:text-sm tracking-widest text-green-400 font-mono animate-pulse">PROCESSING...</p>
+              )}
+              {currentView === "player" && (
+                <p className="text-xs md:text-sm tracking-widest opacity-60 font-mono">PLAYBACK</p>
+              )}
+              {currentView === "docs" && (
+                <p className="text-xs md:text-sm tracking-widest opacity-60 font-mono">DOCUMENTATION</p>
+              )}
+            </div>
 
             {/* Top Right */}
             <div className="text-right space-y-1 text-xs md:text-sm tracking-widest opacity-70">
@@ -363,48 +364,75 @@ export default function Home() {
 
             {/* Bottom Center: Player Controls (only in player view) */}
             {currentView === "player" && (
-              <div className="absolute left-1/2 -translate-x-1/2 bottom-4 md:bottom-8 flex items-center gap-3">
-                <button
-                  onClick={() => goToFrame(0)}
-                  className="px-2 py-1 text-xs bg-white/10 hover:bg-white/20 text-white/70 rounded transition-colors font-mono"
-                >
-                  |&lt;
-                </button>
-                <button
-                  onClick={() => goToFrame(currentFrameIndex - 1)}
-                  className="px-2 py-1 text-xs bg-white/10 hover:bg-white/20 text-white/70 rounded transition-colors font-mono disabled:opacity-30"
-                  disabled={currentFrameIndex === 0}
-                >
-                  &lt;
-                </button>
-                <button
-                  onClick={togglePlayback}
-                  className="flex items-center justify-center w-10 h-10 bg-green-500/20 border border-green-500/50 hover:bg-green-500 text-green-400 hover:text-black rounded-full transition-colors"
-                >
-                  {isPlaying ? (
-                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z"/>
-                    </svg>
-                  ) : (
-                    <svg className="w-4 h-4 ml-0.5" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M8 5v14l11-7z"/>
-                    </svg>
-                  )}
-                </button>
-                <button
-                  onClick={() => goToFrame(currentFrameIndex + 1)}
-                  className="px-2 py-1 text-xs bg-white/10 hover:bg-white/20 text-white/70 rounded transition-colors font-mono disabled:opacity-30"
-                  disabled={currentFrameIndex === asciiFrames.length - 1}
-                >
-                  &gt;
-                </button>
-                <button
-                  onClick={() => goToFrame(asciiFrames.length - 1)}
-                  className="px-2 py-1 text-xs bg-white/10 hover:bg-white/20 text-white/70 rounded transition-colors font-mono"
-                >
-                  &gt;|
-                </button>
-              </div>
+              <TooltipProvider delayDuration={200}>
+                <div className="absolute left-1/2 -translate-x-1/2 bottom-4 md:bottom-8 flex items-center gap-4">
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button
+                        onClick={() => goToFrame(0)}
+                        className="px-3 py-2 text-sm bg-white/10 hover:bg-white/20 text-white/70 rounded transition-colors font-mono"
+                      >
+                        |&lt;
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent side="top">First Frame</TooltipContent>
+                  </Tooltip>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button
+                        onClick={() => goToFrame(currentFrameIndex - 1)}
+                        className="px-3 py-2 text-sm bg-white/10 hover:bg-white/20 text-white/70 rounded transition-colors font-mono disabled:opacity-30"
+                        disabled={currentFrameIndex === 0}
+                      >
+                        &lt;
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent side="top">Previous Frame</TooltipContent>
+                  </Tooltip>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button
+                        onClick={togglePlayback}
+                        className="flex items-center justify-center w-12 h-12 bg-green-500/20 border border-green-500/50 hover:bg-green-500 text-green-400 hover:text-black rounded-full transition-colors"
+                      >
+                        {isPlaying ? (
+                          <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z"/>
+                          </svg>
+                        ) : (
+                          <svg className="w-5 h-5 ml-0.5" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M8 5v14l11-7z"/>
+                          </svg>
+                        )}
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent side="top">{isPlaying ? "Pause" : "Play"}</TooltipContent>
+                  </Tooltip>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button
+                        onClick={() => goToFrame(currentFrameIndex + 1)}
+                        className="px-3 py-2 text-sm bg-white/10 hover:bg-white/20 text-white/70 rounded transition-colors font-mono disabled:opacity-30"
+                        disabled={currentFrameIndex === asciiFrames.length - 1}
+                      >
+                        &gt;
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent side="top">Next Frame</TooltipContent>
+                  </Tooltip>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button
+                        onClick={() => goToFrame(asciiFrames.length - 1)}
+                        className="px-3 py-2 text-sm bg-white/10 hover:bg-white/20 text-white/70 rounded transition-colors font-mono"
+                      >
+                        &gt;|
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent side="top">Last Frame</TooltipContent>
+                  </Tooltip>
+                </div>
+              </TooltipProvider>
             )}
 
             {/* Bottom Right: Docs Link or Convert Another */}

@@ -1,9 +1,10 @@
 "use client"
 
-import React, { useRef, useState } from "react"
+import React, { useRef, useState, useEffect } from "react"
 import { cva } from "class-variance-authority"
 
 import { cn } from "@/lib/utils"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 
 // Make sure this utility exists in your project for combining class names
 
@@ -40,6 +41,7 @@ interface BackgroundMediaProps {
   src: string
   alt?: string
   children?: React.ReactNode
+  shouldPlay?: boolean
 }
 
 export const BackgroundMedia: React.FC<BackgroundMediaProps> = ({
@@ -48,9 +50,23 @@ export const BackgroundMedia: React.FC<BackgroundMediaProps> = ({
   src,
   alt = "",
   children,
+  shouldPlay = true,
 }) => {
-  const [isPlaying, setIsPlaying] = useState(true)
+  const [isPlaying, setIsPlaying] = useState(shouldPlay)
   const mediaRef = useRef<HTMLVideoElement | null>(null)
+
+  // Sync with shouldPlay prop
+  useEffect(() => {
+    if (type === "video" && mediaRef.current) {
+      if (shouldPlay) {
+        mediaRef.current.play().catch(() => {});
+        setIsPlaying(true);
+      } else {
+        mediaRef.current.pause();
+        setIsPlaying(false);
+      }
+    }
+  }, [shouldPlay, type]);
 
   const toggleMediaPlay = () => {
     if (type === "video" && mediaRef.current) {
@@ -99,17 +115,30 @@ export const BackgroundMedia: React.FC<BackgroundMediaProps> = ({
   return (
     <div className={mediaClasses}>
       {renderMedia()}
+      {/* Dim overlay when video is paused */}
+      <div 
+        className={`absolute inset-0 bg-black transition-opacity duration-500 z-10 pointer-events-none ${
+          isPlaying ? "opacity-0" : "opacity-50"
+        }`}
+      />
       <div className="relative z-20 h-full w-full">
         {children}
       </div>
       {type === "video" && (
-        <button
-          aria-label={isPlaying ? "Pause video" : "Play video"}
-          className="absolute bottom-4 right-4 z-50 px-4 py-2 bg-gray-900 text-white hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
-          onClick={toggleMediaPlay}
-        >
-          {isPlaying ? "Pause" : "Play"}
-        </button>
+        <TooltipProvider delayDuration={200}>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                aria-label={isPlaying ? "Pause video" : "Play video"}
+                className="absolute right-4 md:right-8 top-1/2 -translate-y-1/2 z-50 px-3 py-1.5 bg-black/40 backdrop-blur-sm border border-white/20 text-white/70 text-xs font-mono tracking-widest hover:bg-white/10 hover:text-white focus:outline-none focus:ring-1 focus:ring-green-500/50 transition-colors"
+                onClick={toggleMediaPlay}
+              >
+                {isPlaying ? "Pause" : "Play"}
+              </button>
+            </TooltipTrigger>
+            <TooltipContent side="left">{isPlaying ? "Pause Background Video" : "Play Background Video"}</TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
       )}
     </div>
   )

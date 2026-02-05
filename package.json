@@ -28,6 +28,7 @@
   "dependencies": {
     "@ffmpeg/ffmpeg": "^0.12.10",
     "@ffmpeg/util": "^0.12.1",
+    "@radix-ui/react-tooltip": "^1.2.8",
     "class-variance-authority": "^0.7.1",
     "classnames": "^2.5.1",
     "clsx": "^2.1.1",

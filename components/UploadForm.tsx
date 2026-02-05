@@ -32,7 +32,7 @@ export default function UploadForm({ onFileSelect, disabled, selectedFile }: Upl
 
   return (
     <div className="space-y-3">
-      <div className="w-full max-w-4xl mx-auto min-h-48 border border-dashed border-white/30 bg-black/20 rounded-lg overflow-hidden">
+      <div className="w-full max-w-4xl mx-auto min-h-48 border border-dashed border-white/70 bg-black/40 rounded-lg overflow-hidden">
         <FileUpload onChange={handleFileUpload} />
       </div>
 
