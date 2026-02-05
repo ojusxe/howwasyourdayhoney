@@ -1,5 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  turbopack: {},
   serverExternalPackages: ['@ffmpeg/ffmpeg', '@ffmpeg/util', 'pngjs'],
   webpack: (config, { isServer }) => {
     if (!isServer) {
