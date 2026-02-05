@@ -6,11 +6,9 @@ import ProgressBar from "@/components/ProgressBar";
 import ErrorDisplay from "@/components/ErrorDisplay";
 import VideoSettings from "@/components/VideoSettings";
 import ProcessingControls from "@/components/ProcessingControls";
-import PreviewPlayer from "@/components/PreviewPlayer";
 import ClientDownloadButton from "@/components/ClientDownloadButton";
 import { useVideoProcessor } from "@/hooks/useVideoProcessor";
 import { BackgroundMedia } from "@/components/ui/bg-media";
-import Image from "next/image";
 
 type ViewState = "landing" | "upload" | "player";
 
@@ -19,6 +17,11 @@ export default function Home() {
   const [slideDirection, setSlideDirection] = useState<"left" | "right">("left");
   const [date, setDate] = useState<Date | null>(null);
   const contentRef = useRef<HTMLDivElement>(null);
+  
+  // Player state
+  const [currentFrameIndex, setCurrentFrameIndex] = useState(0);
+  const [isPlaying, setIsPlaying] = useState(true);
+  const playerIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     setDate(new Date());
@@ -57,9 +60,36 @@ export default function Home() {
   // Auto-navigate to player when conversion is complete
   useEffect(() => {
     if (isComplete && asciiFrames.length > 0 && currentView === "upload") {
+      setCurrentFrameIndex(0);
+      setIsPlaying(true);
       navigateTo("player");
     }
   }, [isComplete, asciiFrames.length, currentView]);
+
+  // Player animation loop
+  useEffect(() => {
+    if (currentView === "player" && isPlaying && asciiFrames.length > 1) {
+      playerIntervalRef.current = setInterval(() => {
+        setCurrentFrameIndex((prev) => (prev + 1) % asciiFrames.length);
+      }, 1000 / 24); // 24 FPS
+    } else {
+      if (playerIntervalRef.current) {
+        clearInterval(playerIntervalRef.current);
+        playerIntervalRef.current = null;
+      }
+    }
+    return () => {
+      if (playerIntervalRef.current) {
+        clearInterval(playerIntervalRef.current);
+      }
+    };
+  }, [currentView, isPlaying, asciiFrames.length]);
+
+  // Player controls
+  const togglePlayback = () => setIsPlaying(!isPlaying);
+  const goToFrame = (index: number) => {
+    setCurrentFrameIndex(Math.max(0, Math.min(index, asciiFrames.length - 1)));
+  };
 
   // Formatting helper for date and time
   const timeString = date ? date.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false }) : '00:00';
@@ -156,48 +186,12 @@ export default function Home() {
     </div>
   );
 
-  // Player content
+  // Player content - just the ASCII frames
   const renderPlayerContent = () => (
-    <div className="space-y-4 w-full">
-      <div className="flex items-center gap-4 mb-2">
-        <button
-          onClick={() => navigateTo("upload")}
-          className="text-xs md:text-sm tracking-widest opacity-70 hover:opacity-100 transition-opacity font-mono flex items-center gap-2"
-        >
-          ← BACK TO UPLOAD
-        </button>
-        <div className="h-px flex-1 bg-white/20" />
-        <span className="text-xs tracking-widest opacity-60 font-mono">PREVIEW</span>
-      </div>
-
-      <div className="bg-black/60 backdrop-blur-sm border border-white/20 rounded-lg p-4 md:p-6">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-sm font-mono tracking-widest text-green-400">ASCII PLAYER</h3>
-          <span className="text-xs font-mono opacity-60">{asciiFrames.length} FRAMES</span>
-        </div>
-        <PreviewPlayer 
-          frames={asciiFrames}
-          fps={24}
-        />
-      </div>
-
-      <div className="flex justify-center gap-4">
-        <ClientDownloadButton
-          frames={asciiFrames}
-          disabled={!isComplete}
-          onDownload={handleDownload}
-          filename="ascii-animation"
-        />
-        <button
-          onClick={() => {
-            handleRetry();
-            navigateTo("upload");
-          }}
-          className="px-6 py-3 border border-white/60 bg-black/40 backdrop-blur-sm text-white text-sm tracking-widest uppercase hover:bg-white hover:text-black transition-all duration-300 font-mono"
-        >
-          Convert Another
-        </button>
-      </div>
+    <div className="w-full h-full flex items-center justify-center">
+      <pre className="text-green-400 font-mono text-[0.5rem] md:text-xs leading-tight whitespace-pre overflow-auto max-h-full">
+        {asciiFrames[currentFrameIndex]}
+      </pre>
     </div>
   );
 
@@ -219,31 +213,32 @@ export default function Home() {
         {/* Terminal Overlay UI */}
         <div className="relative h-full w-full font-mono text-white p-4 md:p-8 flex flex-col justify-between z-20 select-none">
           
-          {/* Top Info Bar - Always visible */}
+          {/* Top Info Bar */}
           <div className="flex flex-row justify-between items-start w-full">
-            {/* Top Left */}
-            <div className="space-y-1 text-xs md:text-sm tracking-widest opacity-70">
-              <p>FRAME_001</p>
-              <p>ASCII_GEN</p>
-              <p>00:00:00:00</p>
-            </div>
-            
-            {/* Top Center Logo */}
-            <div className="absolute left-1/2 transform -translate-x-1/2 top-6 md:top-8 w-32 md:w-48 text-center">
-              <Image 
-                src="/logo.png" 
-                width={200} 
-                height={60} 
-                alt="ASCII Frame Generator" 
-                className="mx-auto"
-                priority
-              />
-            </div>
+            {/* Top Left - Conditional based on view */}
+            {currentView === "player" ? (
+              <div className="space-y-1 text-xs md:text-sm tracking-widest">
+                <p className="text-green-400">FRAME_{String(currentFrameIndex + 1).padStart(3, '0')}</p>
+                <p className="opacity-70">{asciiFrames.length} TOTAL</p>
+                <button
+                  onClick={() => navigateTo("upload")}
+                  className="opacity-70 hover:opacity-100 transition-opacity flex items-center gap-1 mt-2"
+                >
+                  ← BACK
+                </button>
+              </div>
+            ) : (
+              <div className="space-y-1 text-xs md:text-sm tracking-widest opacity-70">
+                <p>FRAME_001</p>
+                <p>ASCII_GEN</p>
+                <p>00:00:00:00</p>
+              </div>
+            )}
 
             {/* Top Right */}
             <div className="text-right space-y-1 text-xs md:text-sm tracking-widest opacity-70">
               <p>MODE</p>
-              <p>CONVERT</p>
+              <p>{currentView === "player" ? "PLAYBACK" : "CONVERT"}</p>
               <p className="text-green-400 animate-pulse">// ONLINE</p>
             </div>
           </div>
@@ -255,33 +250,108 @@ export default function Home() {
             className={`flex-1 flex items-center overflow-y-auto py-4 ${
               currentView === "landing" 
                 ? "justify-start px-6 md:px-16" 
+                : currentView === "player"
+                ? "justify-center px-2 md:px-4"
                 : "justify-center px-6 md:px-8"
             } ${getSlideClasses()}`}
           >
-            <div className={currentView === "landing" ? "" : "w-full max-w-2xl"}>
+            <div className={
+              currentView === "landing" 
+                ? "" 
+                : currentView === "player" 
+                ? "w-full h-full" 
+                : "w-full max-w-2xl"
+            }>
               {renderContent()}
             </div>
           </div>
 
-          {/* Bottom Info Bar - Always visible */}
+          {/* Bottom Info Bar */}
           <div className="flex justify-between items-end w-full">
-            {/* Bottom Left: Date/Time */}
-            <div className="space-y-1 font-mono">
-              <p className="text-xl md:text-3xl font-medium tracking-wide">
-                {timeString}
-              </p>
-              <p className="text-xs md:text-sm text-gray-300 tracking-wider uppercase">
-                {dateString}
-              </p>
-            </div>
+            {/* Bottom Left: Date/Time or Download */}
+            {currentView === "player" ? (
+              <ClientDownloadButton
+                frames={asciiFrames}
+                disabled={!isComplete}
+                onDownload={handleDownload}
+                filename="ascii-animation"
+              />
+            ) : (
+              <div className="space-y-1 font-mono">
+                <p className="text-xl md:text-3xl font-medium tracking-wide">
+                  {timeString}
+                </p>
+                <p className="text-xs md:text-sm text-gray-300 tracking-wider uppercase">
+                  {dateString}
+                </p>
+              </div>
+            )}
 
-            {/* Bottom Right: Docs Link */}
-            <a 
-              href="/docs" 
-              className="px-4 py-2 border border-white/60 bg-black/40 backdrop-blur-sm text-white text-xs md:text-sm tracking-widest uppercase hover:bg-white hover:text-black transition-all duration-300 font-mono"
-            >
-              Documentation →
-            </a>
+            {/* Bottom Center: Player Controls (only in player view) */}
+            {currentView === "player" && (
+              <div className="absolute left-1/2 -translate-x-1/2 bottom-4 md:bottom-8 flex items-center gap-3">
+                <button
+                  onClick={() => goToFrame(0)}
+                  className="px-2 py-1 text-xs bg-white/10 hover:bg-white/20 text-white/70 rounded transition-colors font-mono"
+                >
+                  |&lt;
+                </button>
+                <button
+                  onClick={() => goToFrame(currentFrameIndex - 1)}
+                  className="px-2 py-1 text-xs bg-white/10 hover:bg-white/20 text-white/70 rounded transition-colors font-mono disabled:opacity-30"
+                  disabled={currentFrameIndex === 0}
+                >
+                  &lt;
+                </button>
+                <button
+                  onClick={togglePlayback}
+                  className="flex items-center justify-center w-10 h-10 bg-green-500/20 border border-green-500/50 hover:bg-green-500 text-green-400 hover:text-black rounded-full transition-colors"
+                >
+                  {isPlaying ? (
+                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z"/>
+                    </svg>
+                  ) : (
+                    <svg className="w-4 h-4 ml-0.5" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M8 5v14l11-7z"/>
+                    </svg>
+                  )}
+                </button>
+                <button
+                  onClick={() => goToFrame(currentFrameIndex + 1)}
+                  className="px-2 py-1 text-xs bg-white/10 hover:bg-white/20 text-white/70 rounded transition-colors font-mono disabled:opacity-30"
+                  disabled={currentFrameIndex === asciiFrames.length - 1}
+                >
+                  &gt;
+                </button>
+                <button
+                  onClick={() => goToFrame(asciiFrames.length - 1)}
+                  className="px-2 py-1 text-xs bg-white/10 hover:bg-white/20 text-white/70 rounded transition-colors font-mono"
+                >
+                  &gt;|
+                </button>
+              </div>
+            )}
+
+            {/* Bottom Right: Docs Link or Convert Another */}
+            {currentView === "player" ? (
+              <button
+                onClick={() => {
+                  handleRetry();
+                  navigateTo("upload");
+                }}
+                className="px-4 py-2 border border-white/60 bg-black/40 backdrop-blur-sm text-white text-xs md:text-sm tracking-widest uppercase hover:bg-white hover:text-black transition-all duration-300 font-mono"
+              >
+                Convert Another →
+              </button>
+            ) : (
+              <a 
+                href="/docs" 
+                className="px-4 py-2 border border-white/60 bg-black/40 backdrop-blur-sm text-white text-xs md:text-sm tracking-widest uppercase hover:bg-white hover:text-black transition-all duration-300 font-mono"
+              >
+                Documentation →
+              </a>
+            )}
           </div>
 
         </div>
