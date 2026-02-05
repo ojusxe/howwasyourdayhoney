@@ -118,7 +118,7 @@ export default function Home() {
   const renderLandingContent = () => (
     <div className="space-y-6">
       <div className="space-y-2">
-        <p className="text-xs md:text-sm tracking-widest opacity-60 uppercase font-mono">Video → ASCII Art</p>
+        <p className="text-xs md:text-sm tracking-widest opacity-60 uppercase font-mono">WEB ASSEMBLY IS HAWT</p>
         <h1 className="text-2xl md:text-4xl font-bold tracking-wide leading-tight max-w-xl font-mono">
           TRANSFORM YOUR VIDEOS
           <br />
@@ -348,24 +348,34 @@ export default function Home() {
 
           {/* Bottom Info Bar */}
           <div className="flex justify-between items-end w-full">
-            {/* Bottom Left: Date/Time or Download */}
-            {currentView === "player" ? (
-              <ClientDownloadButton
-                frames={asciiFrames}
-                disabled={!isComplete}
-                onDownload={handleDownload}
-                filename="ascii-animation"
-              />
-            ) : (
-              <div className="space-y-1 font-mono">
-                <p className="text-xl md:text-3xl font-medium tracking-wide">
-                  {timeString}
-                </p>
-                <p className="text-xs md:text-sm text-gray-300 tracking-wider uppercase">
-                  {dateString}
-                </p>
-              </div>
-            )}
+            {/* Bottom Left: Date/Time or Download + Watermark */}
+            <div className="space-y-2">
+              {currentView === "player" ? (
+                <ClientDownloadButton
+                  frames={asciiFrames}
+                  disabled={!isComplete}
+                  onDownload={handleDownload}
+                  filename="ascii-animation"
+                />
+              ) : (
+                <div className="space-y-1 font-mono">
+                  <p className="text-xl md:text-3xl font-medium tracking-wide">
+                    {timeString}
+                  </p>
+                  <p className="text-xs md:text-sm text-gray-300 tracking-wider uppercase">
+                    {dateString}
+                  </p>
+                </div>
+              )}
+              {/* Watermark */}
+              <p className="text-[10px] text-sm font-mono tracking-wide opacity-80">
+                <span className="text-white">built by</span>{" "}
+                <span className="text-green-400">ojus</span>{" "}
+                <span className="text-white">for</span>{" "}
+                <span className="text-pink-400">clueso</span>{" "}
+                <span className="text-red-400">&lt;3</span>
+              </p>
+            </div>
 
             {/* Bottom Center: Player Controls (only in player view) */}
             {currentView === "player" && (
