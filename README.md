@@ -1,4 +1,4 @@
-<img width="6000" height="566" alt="howwasyourdayhoney" src="https://github.com/user-attachments/assets/119ca802-2e26-4af6-b12c-a70c44e8f03f" />
+![how was your day honey](public/logo.png)
 
 an ASCII frames generation app that converts videos into ASCII art frames and exports them as downloadable text files
 
