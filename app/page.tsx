@@ -12,6 +12,7 @@ import { BackgroundMedia } from "@/components/ui/bg-media";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import GettingStarted from "@/components/docs/GettingStarted";
 import HowItWorks from "@/components/docs/HowItWorks";
+import CodeExamples from "@/components/docs/CodeExamples";
 import Troubleshooting from "@/components/docs/Troubleshooting";
 
 type ViewState = "landing" | "upload" | "processing" | "player" | "docs";
@@ -218,6 +219,10 @@ export default function Home() {
 
       <div className="bg-black/60 backdrop-blur-md border border-white/20 rounded-lg p-6 space-y-6">
         <HowItWorks />
+      </div>
+
+      <div className="bg-black/60 backdrop-blur-md border border-white/20 rounded-lg p-6 space-y-6">
+        <CodeExamples />
       </div>
 
       <div className="bg-black/60 backdrop-blur-md border border-white/20 rounded-lg p-6 space-y-6">

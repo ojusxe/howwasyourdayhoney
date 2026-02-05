@@ -2,17 +2,17 @@ import { CodeBlock } from "@/components/ui/code-block";
 
 export default function CodeExamples() {
   return (
-    <section className="mb-8">
-      <h2 className="text-2xl font-bold text-gray-900 mb-4">displaying ASCII frames</h2>
+    <section>
+      <h2 className="text-xl font-bold text-green-400 mb-4 font-mono">displaying ASCII frames</h2>
       
-      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
-        <p className="text-yellow-800 text-sm">
-          <strong>note:</strong> all code examples below are included in the README.md file of your downloaded ZIP.
+      <div className="bg-green-900/20 border border-green-500/30 rounded-lg p-4 mb-6">
+        <p className="text-green-300 text-sm font-mono">
+          <span className="text-green-400">note:</span> all code examples below are included in the README.md file of your downloaded ZIP.
         </p>
       </div>
 
-      <h3 className="text-xl font-semibold text-gray-900 mb-3">html/javascript</h3>
-      <p className="text-gray-700 mb-4">basic web page animation:</p>
+      <h3 className="text-lg font-semibold text-white mb-3 font-mono">html/javascript</h3>
+      <p className="text-gray-400 mb-4 text-sm font-mono">basic web page animation:</p>
       
       <div className="mb-6">
         <CodeBlock 
@@ -49,8 +49,8 @@ export default function CodeExamples() {
         />
       </div>
 
-      <h3 className="text-xl font-semibold text-gray-900 mb-3">react component</h3>
-      <p className="text-gray-700 mb-4">for react applications:</p>
+      <h3 className="text-lg font-semibold text-white mb-3 font-mono">react component</h3>
+      <p className="text-gray-400 mb-4 text-sm font-mono">for react applications:</p>
       
       <div className="mb-6">
         <CodeBlock 
@@ -89,8 +89,8 @@ const ASCIIAnimation = ({ frames, fps = 12 }) => {
         />
       </div>
 
-      <h3 className="text-xl font-semibold text-gray-900 mb-3">terminal animation (node.js)</h3>
-      <p className="text-gray-700 mb-4">for command-line applications:</p>
+      <h3 className="text-lg font-semibold text-white mb-3 font-mono">terminal animation (node.js)</h3>
+      <p className="text-gray-400 mb-4 text-sm font-mono">for command-line applications:</p>
       
       <div className="mb-6">
         <CodeBlock 
