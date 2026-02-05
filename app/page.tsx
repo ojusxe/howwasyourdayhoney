@@ -9,8 +9,11 @@ import ProcessingControls from "@/components/ProcessingControls";
 import ClientDownloadButton from "@/components/ClientDownloadButton";
 import { useVideoProcessor } from "@/hooks/useVideoProcessor";
 import { BackgroundMedia } from "@/components/ui/bg-media";
+import GettingStarted from "@/components/docs/GettingStarted";
+import HowItWorks from "@/components/docs/HowItWorks";
+import Troubleshooting from "@/components/docs/Troubleshooting";
 
-type ViewState = "landing" | "upload" | "player";
+type ViewState = "landing" | "upload" | "processing" | "player" | "docs";
 
 export default function Home() {
   const [currentView, setCurrentView] = useState<ViewState>("landing");
@@ -50,16 +53,23 @@ export default function Home() {
 
   // Navigate to a view with animation
   const navigateTo = (view: ViewState) => {
-    const viewOrder: ViewState[] = ["landing", "upload", "player"];
+    const viewOrder: ViewState[] = ["landing", "upload", "processing", "player", "docs"];
     const currentIndex = viewOrder.indexOf(currentView);
     const targetIndex = viewOrder.indexOf(view);
     setSlideDirection(targetIndex > currentIndex ? "left" : "right");
     setCurrentView(view);
   };
 
+  // Auto-navigate to processing when conversion starts
+  useEffect(() => {
+    if (isProcessing && currentView === "upload") {
+      navigateTo("processing");
+    }
+  }, [isProcessing, currentView]);
+
   // Auto-navigate to player when conversion is complete
   useEffect(() => {
-    if (isComplete && asciiFrames.length > 0 && currentView === "upload") {
+    if (isComplete && asciiFrames.length > 0 && (currentView === "upload" || currentView === "processing")) {
       setCurrentFrameIndex(0);
       setIsPlaying(true);
       navigateTo("player");
@@ -177,12 +187,6 @@ export default function Home() {
           />
         </div>
       )}
-
-      {(isProcessing || isComplete) && (
-        <div className="bg-black/40 backdrop-blur-sm border border-white/20 rounded-lg p-4">
-          <ProgressBar {...getProgressProps()} />
-        </div>
-      )}
     </div>
   );
 
@@ -195,6 +199,72 @@ export default function Home() {
     </div>
   );
 
+  // Processing content - centered progress display
+  const renderProcessingContent = () => (
+    <div className="space-y-6 w-full text-center">
+      <div className="space-y-2">
+        <p className="text-xs md:text-sm tracking-widest opacity-60 uppercase font-mono">Processing</p>
+        <h2 className="text-xl md:text-2xl font-bold tracking-wide font-mono text-green-400">
+          CONVERTING TO ASCII
+        </h2>
+      </div>
+      
+      <div className="bg-black/40 backdrop-blur-sm border border-white/20 rounded-lg p-6">
+        <ProgressBar {...getProgressProps()} />
+      </div>
+
+      <p className="text-xs text-gray-400 font-mono opacity-70">
+        This may take a moment depending on video length and settings...
+      </p>
+    </div>
+  );
+
+  // Docs content - inline documentation
+  const renderDocsContent = () => (
+    <div className="space-y-6 w-full max-w-3xl overflow-y-auto max-h-[70vh]">
+      <div className="flex items-center gap-4 mb-2">
+        <button
+          onClick={() => navigateTo("landing")}
+          className="text-xs md:text-sm tracking-widest opacity-70 hover:opacity-100 transition-opacity font-mono flex items-center gap-2"
+        >
+          ← BACK
+        </button>
+        <div className="h-px flex-1 bg-white/20" />
+        <span className="text-xs tracking-widest opacity-60 font-mono">DOCUMENTATION</span>
+      </div>
+
+      <div className="bg-black/40 backdrop-blur-sm border border-white/20 rounded-lg p-6 space-y-6">
+        <GettingStarted />
+      </div>
+
+      <div className="bg-black/40 backdrop-blur-sm border border-white/20 rounded-lg p-6 space-y-6">
+        <HowItWorks />
+      </div>
+
+      <div className="bg-black/40 backdrop-blur-sm border border-white/20 rounded-lg p-6 space-y-6">
+        <Troubleshooting />
+      </div>
+
+      <div className="bg-black/40 backdrop-blur-sm border border-green-500/30 rounded-lg p-6">
+        <h3 className="text-lg font-bold text-green-400 mb-4 font-mono">Privacy & Security</h3>
+        <ul className="space-y-2 text-sm text-gray-300 font-mono">
+          <li className="flex items-start gap-2">
+            <span className="text-green-400">•</span>
+            <span>All processing happens in your browser - no server uploads</span>
+          </li>
+          <li className="flex items-start gap-2">
+            <span className="text-green-400">•</span>
+            <span>Your videos never leave your device</span>
+          </li>
+          <li className="flex items-start gap-2">
+            <span className="text-green-400">•</span>
+            <span>No data is stored or transmitted to external servers</span>
+          </li>
+        </ul>
+      </div>
+    </div>
+  );
+
   // Render the current view content
   const renderContent = () => {
     switch (currentView) {
@@ -202,8 +272,12 @@ export default function Home() {
         return renderLandingContent();
       case "upload":
         return renderUploadContent();
+      case "processing":
+        return renderProcessingContent();
       case "player":
         return renderPlayerContent();
+      case "docs":
+        return renderDocsContent();
     }
   };
 
@@ -238,7 +312,7 @@ export default function Home() {
             {/* Top Right */}
             <div className="text-right space-y-1 text-xs md:text-sm tracking-widest opacity-70">
               <p>MODE</p>
-              <p>{currentView === "player" ? "PLAYBACK" : "CONVERT"}</p>
+              <p>{currentView === "player" ? "PLAYBACK" : currentView === "processing" ? "PROCESSING" : currentView === "docs" ? "DOCS" : "CONVERT"}</p>
               <p className="text-green-400 animate-pulse">// ONLINE</p>
             </div>
           </div>
@@ -250,8 +324,6 @@ export default function Home() {
             className={`flex-1 flex items-center overflow-y-auto py-4 ${
               currentView === "landing" 
                 ? "justify-start px-6 md:px-16" 
-                : currentView === "player"
-                ? "justify-center px-2 md:px-4"
                 : "justify-center px-6 md:px-8"
             } ${getSlideClasses()}`}
           >
@@ -260,6 +332,8 @@ export default function Home() {
                 ? "" 
                 : currentView === "player" 
                 ? "w-full h-full" 
+                : currentView === "processing"
+                ? "w-full max-w-lg flex items-center justify-center"
                 : "w-full max-w-2xl"
             }>
               {renderContent()}
@@ -344,13 +418,22 @@ export default function Home() {
               >
                 Convert Another →
               </button>
+            ) : currentView === "docs" ? (
+              <button
+                onClick={() => navigateTo("landing")}
+                className="px-4 py-2 border border-white/60 bg-black/40 backdrop-blur-sm text-white text-xs md:text-sm tracking-widest uppercase hover:bg-white hover:text-black transition-all duration-300 font-mono"
+              >
+                ← Back to Home
+              </button>
+            ) : currentView === "processing" ? (
+              <div className="text-xs text-gray-400 font-mono opacity-60">Please wait...</div>
             ) : (
-              <a 
-                href="/docs" 
+              <button
+                onClick={() => navigateTo("docs")}
                 className="px-4 py-2 border border-white/60 bg-black/40 backdrop-blur-sm text-white text-xs md:text-sm tracking-widest uppercase hover:bg-white hover:text-black transition-all duration-300 font-mono"
               >
                 Documentation →
-              </a>
+              </button>
             )}
           </div>
 
