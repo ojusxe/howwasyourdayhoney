@@ -82,12 +82,12 @@ export default function ProgressBar({
   }
 
   return (
-    <div className="bg-white border border-gray-200 rounded-lg p-6">
+    <div className="rounded-lg">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-semibold text-gray-900">Processing Status</h3>
+        <h3 className="text-sm font-mono tracking-widest text-green-400">PROCESSING</h3>
         <div className="flex items-center space-x-2">
           {getStatusIcon()}
-          <span className="text-sm font-medium text-gray-700">
+          <span className="text-sm font-medium text-white font-mono">
             {Math.round(progress)}%
           </span>
         </div>
@@ -95,9 +95,9 @@ export default function ProgressBar({
 
       {/* Progress Bar - main progress indicator */}
       <div className="mb-4">
-        <div className="w-full bg-gray-200 rounded-full h-3">
+        <div className="w-full bg-white/20 rounded-full h-2">
           <div 
-            className={`h-3 rounded-full transition-all duration-300 ${getStatusColor()}`}
+            className={`h-2 rounded-full transition-all duration-300 ${getStatusColor()}`}
             style={{ width: `${Math.min(progress, 100)}%` }}
           />
         </div>
@@ -105,12 +105,12 @@ export default function ProgressBar({
 
       {/* Status Text - displays current processing info */}
       <div className="flex justify-between items-center text-sm">
-        <span className="text-gray-600">
+        <span className="text-white/70 font-mono text-xs">
           {message || getStatusText()}
         </span>
         
         {totalFrames > 0 && (
-          <span className="text-gray-500">
+          <span className="text-white/50 font-mono text-xs">
             {currentFrame}/{totalFrames} frames
           </span>
         )}
@@ -119,37 +119,37 @@ export default function ProgressBar({
       {/* Processing Steps - shows detailed progress stages */}
       {status === 'processing' && (
         <div className="mt-4 space-y-2">
-          <div className="flex items-center text-xs text-gray-500">
-            <div className={`w-2 h-2 rounded-full mr-2 ${progress > 0 ? 'bg-green-500' : 'bg-gray-300'}`} />
-            video uploaded and validated
+          <div className="flex items-center text-xs text-white/50 font-mono">
+            <div className={`w-2 h-2 rounded-full mr-2 ${progress > 0 ? 'bg-green-500' : 'bg-white/30'}`} />
+            video uploaded
           </div>
-          <div className="flex items-center text-xs text-gray-500">
-            <div className={`w-2 h-2 rounded-full mr-2 ${progress > 10 ? 'bg-green-500' : progress > 0 ? 'bg-blue-500' : 'bg-gray-300'}`} />
-            extracting frames from video
+          <div className="flex items-center text-xs text-white/50 font-mono">
+            <div className={`w-2 h-2 rounded-full mr-2 ${progress > 10 ? 'bg-green-500' : progress > 0 ? 'bg-blue-500' : 'bg-white/30'}`} />
+            extracting frames
           </div>
-          <div className="flex items-center text-xs text-gray-500">
-            <div className={`w-2 h-2 rounded-full mr-2 ${progress > 50 ? 'bg-green-500' : progress > 10 ? 'bg-blue-500' : 'bg-gray-300'}`} />
-            converting frames to ASCII
+          <div className="flex items-center text-xs text-white/50 font-mono">
+            <div className={`w-2 h-2 rounded-full mr-2 ${progress > 50 ? 'bg-green-500' : progress > 10 ? 'bg-blue-500' : 'bg-white/30'}`} />
+            converting to ASCII
           </div>
-          <div className="flex items-center text-xs text-gray-500">
-            <div className={`w-2 h-2 rounded-full mr-2 ${progress >= 100 ? 'bg-green-500' : progress > 90 ? 'bg-blue-500' : 'bg-gray-300'}`} />
-            packaging frames for download
+          <div className="flex items-center text-xs text-white/50 font-mono">
+            <div className={`w-2 h-2 rounded-full mr-2 ${progress >= 100 ? 'bg-green-500' : progress > 90 ? 'bg-blue-500' : 'bg-white/30'}`} />
+            packaging
           </div>
         </div>
       )}
 
       {/* Error Message - displayed when processing fails */}
       {status === 'error' && message && (
-        <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-md">
-          <p className="text-sm text-red-700">{message}</p>
+        <div className="mt-4 p-3 bg-red-900/30 border border-red-500/50 rounded-md">
+          <p className="text-sm text-red-300 font-mono">{message}</p>
         </div>
       )}
 
       {/* Success Message - shown when processing completes successfully */}
       {status === 'complete' && (
-        <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-md">
-          <p className="text-sm text-green-700">
-            successfully converted {totalFrames} frames to ASCII art! your download is ready!
+        <div className="mt-4 p-3 bg-green-900/30 border border-green-500/50 rounded-md">
+          <p className="text-sm text-green-300 font-mono">
+            {totalFrames} frames converted successfully!
           </p>
         </div>
       )}

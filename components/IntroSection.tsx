@@ -8,7 +8,7 @@ export default function IntroSection() {
         Turn your videos into beautiful ASCII art animations! 
         Upload a short video and watch it transform into retro-style terminal art.
       </p>
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 max-w-2xl mx-auto">
+      {/* <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 max-w-2xl mx-auto">
         <h3 className="text-sm font-semibold text-blue-900 mb-2">
           Video Requirements
         </h3>
@@ -33,7 +33,7 @@ export default function IntroSection() {
             <strong>Customizable:</strong> Use your own characters for unique ASCII art styles
           </p>
         </div>
-      </div>
+      </div> */}
     </div>
   );
 }

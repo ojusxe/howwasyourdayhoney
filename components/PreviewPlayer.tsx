@@ -54,17 +54,17 @@ export default function PreviewPlayer({
 
   return (
     <div className="space-y-4">
-      <div className="bg-black rounded-lg p-4 overflow-auto">
+      <div className="bg-black/80 rounded-lg p-4 overflow-auto max-h-[400px] border border-white/10">
         <pre className="text-green-400 font-mono text-xs leading-tight whitespace-pre">
           {frames[currentFrameIndex]}
         </pre>
       </div>
 
-      <div className="flex items-center justify-between bg-gray-50 rounded-lg p-3">
+      <div className="flex items-center justify-between bg-black/40 border border-white/20 rounded-lg p-3">
         <div className="flex items-center space-x-3">
           <button
             onClick={togglePlayback}
-            className="flex items-center justify-center w-10 h-10 bg-blue-500 hover:bg-blue-600 text-white rounded-full transition-colors"
+            className="flex items-center justify-center w-10 h-10 bg-green-500/20 border border-green-500/50 hover:bg-green-500 text-green-400 hover:text-black rounded-full transition-colors"
           >
             {playing ? (
               <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
@@ -77,37 +77,37 @@ export default function PreviewPlayer({
             )}
           </button>
 
-          <div className="text-sm text-gray-600">
-            Frame {currentFrameIndex + 1} of {frames.length}
+          <div className="text-sm text-white/70 font-mono">
+            {currentFrameIndex + 1} / {frames.length}
           </div>
         </div>
 
         <div className="flex items-center space-x-2">
           <button
             onClick={() => goToFrame(0)}
-            className="px-2 py-1 text-xs bg-gray-200 hover:bg-gray-300 rounded transition-colors"
+            className="px-2 py-1 text-xs bg-white/10 hover:bg-white/20 text-white/70 rounded transition-colors font-mono"
           >
-            First
+            |&lt;
           </button>
           <button
             onClick={() => goToFrame(currentFrameIndex - 1)}
-            className="px-2 py-1 text-xs bg-gray-200 hover:bg-gray-300 rounded transition-colors"
+            className="px-2 py-1 text-xs bg-white/10 hover:bg-white/20 text-white/70 rounded transition-colors font-mono disabled:opacity-30"
             disabled={currentFrameIndex === 0}
           >
-            Prev
+            &lt;
           </button>
           <button
             onClick={() => goToFrame(currentFrameIndex + 1)}
-            className="px-2 py-1 text-xs bg-gray-200 hover:bg-gray-300 rounded transition-colors"
+            className="px-2 py-1 text-xs bg-white/10 hover:bg-white/20 text-white/70 rounded transition-colors font-mono disabled:opacity-30"
             disabled={currentFrameIndex === frames.length - 1}
           >
-            Next
+            &gt;
           </button>
           <button
             onClick={() => goToFrame(frames.length - 1)}
-            className="px-2 py-1 text-xs bg-gray-200 hover:bg-gray-300 rounded transition-colors"
+            className="px-2 py-1 text-xs bg-white/10 hover:bg-white/20 text-white/70 rounded transition-colors font-mono"
           >
-            Last
+            &gt;|
           </button>
         </div>
       </div>

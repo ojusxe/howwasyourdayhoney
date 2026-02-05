@@ -31,16 +31,16 @@ export default function UploadForm({ onFileSelect, disabled, selectedFile }: Upl
   }, [onFileSelect, disabled]);
 
   return (
-    <div className="space-y-4">
-      <div className="w-full max-w-4xl mx-auto min-h-96 border border-dashed bg-white border-neutral-200 rounded-lg">
+    <div className="space-y-3">
+      <div className="w-full max-w-4xl mx-auto min-h-48 border border-dashed border-white/30 bg-black/20 rounded-lg overflow-hidden">
         <FileUpload onChange={handleFileUpload} />
       </div>
 
       {selectedFile && (
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+        <div className="bg-green-900/30 border border-green-500/50 rounded-lg p-3">
           <div className="flex items-center space-x-3">
             <svg
-              className="w-5 h-5 text-blue-500"
+              className="w-5 h-5 text-green-400"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -53,10 +53,10 @@ export default function UploadForm({ onFileSelect, disabled, selectedFile }: Upl
               />
             </svg>
             <div>
-              <p className="text-sm font-medium text-blue-900">
+              <p className="text-sm font-medium text-green-300 font-mono">
                 {selectedFile.name}
               </p>
-              <p className="text-xs text-blue-700">
+              <p className="text-xs text-green-400/70 font-mono">
                 {(selectedFile.size / 1024 / 1024).toFixed(1)}MB • {selectedFile.type}
               </p>
             </div>

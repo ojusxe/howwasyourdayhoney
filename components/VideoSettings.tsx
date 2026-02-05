@@ -43,17 +43,17 @@ export default function VideoSettings({ settings, onSettingsChange, disabled }: 
   };
 
   return (
-    <div className="bg-gray-50 rounded-lg p-4">
+    <div className="rounded-lg">
       <button
         onClick={() => setIsExpanded(!isExpanded)}
         className="flex items-center justify-between w-full text-left"
         disabled={disabled}
       >
-        <h3 className="text-sm font-medium text-gray-900">
-          Advanced Settings (Optional)
+        <h3 className="text-sm font-medium text-white font-mono tracking-widest">
+          ADVANCED SETTINGS
         </h3>
         <svg
-          className={`w-4 h-4 transition-transform ${isExpanded ? 'rotate-180' : ''}`}
+          className={`w-4 h-4 text-white/70 transition-transform ${isExpanded ? 'rotate-180' : ''}`}
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
@@ -65,7 +65,7 @@ export default function VideoSettings({ settings, onSettingsChange, disabled }: 
       {isExpanded && (
         <div className="mt-4 space-y-4">
           <div>
-            <label className="block text-xs font-medium text-gray-700 mb-2">
+            <label className="block text-xs font-medium text-white/80 mb-2 font-mono">
               Width: {settings.width} columns
             </label>
             <input
@@ -76,17 +76,17 @@ export default function VideoSettings({ settings, onSettingsChange, disabled }: 
               value={settings.width}
               onChange={(e) => updateSetting('width', parseInt(e.target.value))}
               disabled={disabled}
-              className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+              className="w-full h-2 bg-white/20 rounded-lg appearance-none cursor-pointer accent-green-400"
             />
-            <div className="flex justify-between text-xs text-gray-500 mt-1">
-              <span>80 (compact)</span>
-              <span>120 (optimal)</span>
-              <span>160 (detailed)</span>
+            <div className="flex justify-between text-xs text-white/50 mt-1 font-mono">
+              <span>80</span>
+              <span>120</span>
+              <span>160</span>
             </div>
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-gray-700 mb-2">
+            <label className="block text-xs font-medium text-white/80 mb-2 font-mono">
               Contrast: {settings.contrast.toFixed(1)}x
             </label>
             <input
@@ -97,17 +97,17 @@ export default function VideoSettings({ settings, onSettingsChange, disabled }: 
               value={settings.contrast}
               onChange={(e) => updateSetting('contrast', parseFloat(e.target.value))}
               disabled={disabled}
-              className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+              className="w-full h-2 bg-white/20 rounded-lg appearance-none cursor-pointer accent-green-400"
             />
-            <div className="flex justify-between text-xs text-gray-500 mt-1">
-              <span>0.5 (soft)</span>
-              <span>1.0 (normal)</span>
-              <span>2.0 (high)</span>
+            <div className="flex justify-between text-xs text-white/50 mt-1 font-mono">
+              <span>0.5</span>
+              <span>1.0</span>
+              <span>2.0</span>
             </div>
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-gray-700 mb-2">
+            <label className="block text-xs font-medium text-white/80 mb-2 font-mono">
               Brightness: {settings.brightness > 0 ? '+' : ''}{settings.brightness}
             </label>
             <input
@@ -118,16 +118,16 @@ export default function VideoSettings({ settings, onSettingsChange, disabled }: 
               value={settings.brightness}
               onChange={(e) => updateSetting('brightness', parseInt(e.target.value))}
               disabled={disabled}
-              className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+              className="w-full h-2 bg-white/20 rounded-lg appearance-none cursor-pointer accent-green-400"
             />
-            <div className="flex justify-between text-xs text-gray-500 mt-1">
-              <span>-50 (darker)</span>
-              <span>0 (normal)</span>
-              <span>+50 (brighter)</span>
+            <div className="flex justify-between text-xs text-white/50 mt-1 font-mono">
+              <span>-50</span>
+              <span>0</span>
+              <span>+50</span>
             </div>
           </div>
 
-          <div className="border-t border-gray-200 pt-4">
+          <div className="border-t border-white/20 pt-4">
             <div className="flex items-center space-x-2 mb-3">
               <input
                 type="checkbox"
@@ -135,9 +135,9 @@ export default function VideoSettings({ settings, onSettingsChange, disabled }: 
                 checked={settings.useCustomCharacterSet}
                 onChange={(e) => updateSetting('useCustomCharacterSet', e.target.checked)}
                 disabled={disabled}
-                className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
+                className="w-4 h-4 text-green-400 bg-black/50 border-white/30 rounded focus:ring-green-400 accent-green-400"
               />
-              <label htmlFor="useCustomCharacterSet" className="text-xs font-medium text-gray-700">
+              <label htmlFor="useCustomCharacterSet" className="text-xs font-medium text-white/80 font-mono">
                 Use Custom Character Set
               </label>
             </div>
@@ -146,73 +146,32 @@ export default function VideoSettings({ settings, onSettingsChange, disabled }: 
               <div className="space-y-3">
                 <div>
                   <div className="flex items-center justify-between mb-2">
-                    <label className="text-xs font-medium text-gray-700">
-                      Custom Characters ({settings.customCharacterSet.length} chars)
+                    <label className="text-xs font-medium text-white/80 font-mono">
+                      Characters ({settings.customCharacterSet.length})
                     </label>
                     <button
                       type="button"
                       onClick={() => updateSetting('customCharacterSet', OPTIMIZED_CHARACTER_SET)}
                       disabled={disabled}
-                      className="text-xs text-blue-600 hover:text-blue-800 underline"
+                      className="text-xs text-green-400 hover:text-green-300 underline font-mono"
                     >
-                      Reset to Default
+                      Reset
                     </button>
                   </div>
                   <textarea
                     value={settings.customCharacterSet}
                     onChange={(e) => updateSetting('customCharacterSet', e.target.value)}
                     disabled={disabled}
-                    placeholder="Enter your custom characters (e.g., .:-=+*#%@)"
-                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
-                    rows={3}
+                    placeholder="Enter custom characters (e.g., .:-=+*#%@)"
+                    className="w-full px-3 py-2 text-sm border border-white/30 rounded-md bg-black/50 text-white font-mono focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-transparent resize-none placeholder:text-white/30"
+                    rows={2}
                   />
-                  <div className="flex justify-between text-xs text-gray-500 mt-1">
-                    <span>Min: 2 characters</span>
-                    <span>Max: 100 characters</span>
-                  </div>
                   {characterSetError && (
-                    <p className="text-xs text-red-600 mt-1">{characterSetError}</p>
+                    <p className="text-xs text-red-400 mt-1 font-mono">{characterSetError}</p>
                   )}
-                </div>
-
-                <div className="bg-yellow-50 border border-yellow-200 rounded p-3">
-                  <h5 className="text-xs font-medium text-yellow-900 mb-2">Character Set Examples:</h5>
-                  <div className="space-y-1 text-xs text-yellow-800">
-                    <div>
-                      <strong>Classic:</strong> 
-                      <code className="ml-1 bg-white px-1 rounded">.:-=+*#%@</code>
-                    </div>
-                    <div>
-                      <strong>Minimal:</strong> 
-                      <code className="ml-1 bg-white px-1 rounded"> .-+#@</code>
-                    </div>
-                    <div>
-                      <strong>Numbers:</strong> 
-                      <code className="ml-1 bg-white px-1 rounded"> 0123456789</code>
-                    </div>
-                    <div>
-                      <strong>Letters:</strong> 
-                      <code className="ml-1 bg-white px-1 rounded"> abcdefghijklmnopqrstuvwxyz</code>
-                    </div>
-                    <div>
-                      <strong>Symbols:</strong> 
-                      <code className="ml-1 bg-white px-1 rounded"> ░▒▓█</code>
-                    </div>
-                  </div>
                 </div>
               </div>
             )}
-          </div>
-
-          <div className="bg-blue-50 border border-blue-200 rounded p-3">
-            <h4 className="text-xs font-medium text-blue-900 mb-1">Tips for Best Results:</h4>
-            <ul className="text-xs text-blue-800 space-y-1">
-              <li>• <strong>Dark videos:</strong> Increase brightness (+20 to +40)</li>
-              <li>• <strong>Low contrast videos:</strong> Increase contrast (1.3 to 1.8)</li>
-              <li>• <strong>Detailed content:</strong> Use higher width (140-160)</li>
-              <li>• <strong>Simple animations:</strong> Use lower width (80-100)</li>
-              <li>• <strong>Custom characters:</strong> Order from lightest to darkest for best results</li>
-            </ul>
           </div>
         </div>
       )}
