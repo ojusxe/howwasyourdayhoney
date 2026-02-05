@@ -1,8 +1,7 @@
 import { useState, useCallback } from "react";
 import { extractFrames } from "@/lib/clientVideoProcessor";
 import { convertFramesToAscii } from "@/lib/clientAsciiConverter";
-import { ErrorType, OPTIMIZED_CHARACTER_SET } from "@/lib/types";
-import { VideoProcessingSettings } from "@/components/VideoSettings";
+import { ErrorType, OPTIMIZED_CHARACTER_SET, VideoProcessingSettings } from "@/lib/types";
 
 type AppState = "idle" | "processing" | "complete" | "error";
 

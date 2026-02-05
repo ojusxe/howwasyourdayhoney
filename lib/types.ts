@@ -9,6 +9,18 @@ export interface ASCIIFrame {
   colorData?: ColorPixel[][];
 }
 
+// Video processing settings
+export interface VideoProcessingSettings {
+  contrast: number;
+  brightness: number;
+  width: number;
+  useCustomCharacterSet: boolean;
+  customCharacterSet: string;
+}
+
+// View state for app navigation
+export type ViewState = "landing" | "upload" | "processing" | "player" | "docs";
+
 // Color pixel for colored ASCII output
 export interface ColorPixel {
   char: string;

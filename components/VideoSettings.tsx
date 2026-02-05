@@ -1,15 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { OPTIMIZED_CHARACTER_SET } from '@/lib/types';
-
-export interface VideoProcessingSettings {
-  contrast: number;
-  brightness: number;
-  width: number;
-  useCustomCharacterSet: boolean;
-  customCharacterSet: string;
-}
+import { OPTIMIZED_CHARACTER_SET, VideoProcessingSettings } from '@/lib/types';
 
 interface VideoSettingsProps {
   settings: VideoProcessingSettings;

@@ -1,21 +1,17 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import UploadForm from "@/components/UploadForm";
-import ProgressBar from "@/components/ProgressBar";
-import ErrorDisplay from "@/components/ErrorDisplay";
-import VideoSettings from "@/components/VideoSettings";
-import ProcessingControls from "@/components/ProcessingControls";
 import ClientDownloadButton from "@/components/ClientDownloadButton";
 import { useVideoProcessor } from "@/hooks/useVideoProcessor";
 import { BackgroundMedia } from "@/components/ui/bg-media";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import GettingStarted from "@/components/docs/GettingStarted";
-import HowItWorks from "@/components/docs/HowItWorks";
-import CodeExamples from "@/components/docs/CodeExamples";
-import Troubleshooting from "@/components/docs/Troubleshooting";
+import { ViewState } from "@/lib/types";
 
-type ViewState = "landing" | "upload" | "processing" | "player" | "docs";
+// View components
+import { LandingView, UploadView, ProcessingView, PlayerView, DocsView } from "@/components/views";
+
+// Layout components
+import { TopInfoBar } from "@/components/layout";
 
 export default function Home() {
   const [currentView, setCurrentView] = useState<ViewState>("landing");
@@ -60,6 +56,12 @@ export default function Home() {
     const targetIndex = viewOrder.indexOf(view);
     setSlideDirection(targetIndex > currentIndex ? "left" : "right");
     setCurrentView(view);
+  };
+
+  // Handle back navigation
+  const handleBack = () => {
+    if (currentView === "player") handleRetry();
+    navigateTo("landing");
   };
 
   // Auto-navigate to processing when conversion starts
@@ -114,154 +116,32 @@ export default function Home() {
       : "animate-slide-in-left";
   };
 
-  // Landing content
-  const renderLandingContent = () => (
-    <div className="space-y-6">
-      <div className="space-y-2">
-        <p className="text-xs md:text-sm tracking-widest opacity-60 uppercase font-mono">WEB ASSEMBLY IS HAWT</p>
-        <h1 className="text-2xl md:text-4xl font-bold tracking-wide leading-tight max-w-xl font-mono">
-          TRANSFORM YOUR VIDEOS
-          <br />
-          <span className="text-green-400">INTO ASCII ART</span>
-        </h1>
-      </div>
-      <p className="text-sm md:text-base text-gray-300 max-w-md opacity-80 font-mono">
-        Client-side video processing. No uploads. Pure browser magic.
-      </p>
-      
-      <button
-        onClick={() => navigateTo("upload")}
-        className="group relative px-8 py-4 border border-white/80 bg-black/30 backdrop-blur-sm text-white uppercase tracking-[0.2em] text-sm font-semibold hover:bg-white hover:text-black transition-all duration-300 font-mono"
-      >
-        Start Converting
-      </button>
-    </div>
-  );
-
-  // Upload content
-  const renderUploadContent = () => (
-    <div className="space-y-4 w-full">
-      {error && (
-        <div className="bg-red-900/60 border border-red-500/50 backdrop-blur-md rounded-lg p-4">
-          <ErrorDisplay
-            error={error}
-            onRetry={handleRetry}
-            onDismiss={handleDismissError}
-          />
-        </div>
-      )}
-
-      <div className="bg-black/60 backdrop-blur-md border border-white/20 rounded-lg p-4">
-        <UploadForm
-          onFileSelect={handleFileSelect}
-          disabled={isProcessing}
-          selectedFile={selectedFile}
-        />
-      </div>
-
-      {selectedFile && (
-        <div className="bg-black/60 backdrop-blur-md border border-white/20 rounded-lg p-4">
-          <h3 className="text-xs font-mono tracking-widest text-green-400 mb-3">SETTINGS</h3>
-          <VideoSettings
-            settings={videoSettings}
-            onSettingsChange={setVideoSettings}
-            disabled={isProcessing}
-          />
-        </div>
-      )}
-
-      {selectedFile && (
-        <div className="flex items-center justify-center">
-          <ProcessingControls
-            canStartProcessing={canStartProcessing}
-            onStartProcessing={handleProcessVideo}
-          />
-        </div>
-      )}
-    </div>
-  );
-
-  // Player content - just the ASCII frames
-  const renderPlayerContent = () => (
-    <div className="w-full h-full flex items-center justify-center">
-      <pre className="text-green-400 font-mono text-[0.5rem] md:text-xs leading-tight whitespace-pre overflow-auto max-h-full">
-        {asciiFrames[currentFrameIndex]}
-      </pre>
-    </div>
-  );
-
-  // Processing content - centered progress display
-  const renderProcessingContent = () => (
-    <div className="space-y-6 w-full text-center">
-      <div className="space-y-2">
-        <p className="text-xs md:text-sm tracking-widest opacity-60 uppercase font-mono">Processing</p>
-        <h2 className="text-xl md:text-2xl font-bold tracking-wide font-mono text-green-400">
-          CONVERTING TO ASCII
-        </h2>
-      </div>
-      
-      <div className="bg-black/60 backdrop-blur-md border border-white/20 rounded-lg p-6">
-        <ProgressBar {...getProgressProps()} />
-      </div>
-
-      <p className="text-xs text-gray-400 font-mono opacity-70">
-        This may take a moment depending on video length and settings...
-      </p>
-    </div>
-  );
-
-  // Docs content - inline documentation
-  const renderDocsContent = () => (
-    <div className="space-y-6 w-full max-w-3xl overflow-y-auto max-h-[70vh]">
-      <div className="bg-black/60 backdrop-blur-md border border-white/20 rounded-lg p-6 space-y-6">
-        <GettingStarted />
-      </div>
-
-      <div className="bg-black/60 backdrop-blur-md border border-white/20 rounded-lg p-6 space-y-6">
-        <HowItWorks />
-      </div>
-
-      <div className="bg-black/60 backdrop-blur-md border border-white/20 rounded-lg p-6 space-y-6">
-        <CodeExamples />
-      </div>
-
-      <div className="bg-black/60 backdrop-blur-md border border-white/20 rounded-lg p-6 space-y-6">
-        <Troubleshooting />
-      </div>
-
-      <div className="bg-black/60 backdrop-blur-md border border-green-500/30 rounded-lg p-6">
-        <h3 className="text-lg font-bold text-green-400 mb-4 font-mono">Privacy & Security</h3>
-        <ul className="space-y-2 text-sm text-gray-300 font-mono">
-          <li className="flex items-start gap-2">
-            <span className="text-green-400">•</span>
-            <span>All processing happens in your browser - no server uploads</span>
-          </li>
-          <li className="flex items-start gap-2">
-            <span className="text-green-400">•</span>
-            <span>Your videos never leave your device</span>
-          </li>
-          <li className="flex items-start gap-2">
-            <span className="text-green-400">•</span>
-            <span>No data is stored or transmitted to external servers</span>
-          </li>
-        </ul>
-      </div>
-    </div>
-  );
-
   // Render the current view content
   const renderContent = () => {
     switch (currentView) {
       case "landing":
-        return renderLandingContent();
+        return <LandingView onNavigateToUpload={() => navigateTo("upload")} />;
       case "upload":
-        return renderUploadContent();
+        return (
+          <UploadView
+            selectedFile={selectedFile}
+            error={error}
+            videoSettings={videoSettings}
+            isProcessing={isProcessing}
+            canStartProcessing={canStartProcessing}
+            onFileSelect={handleFileSelect}
+            onSettingsChange={setVideoSettings}
+            onStartProcessing={handleProcessVideo}
+            onRetry={handleRetry}
+            onDismissError={handleDismissError}
+          />
+        );
       case "processing":
-        return renderProcessingContent();
+        return <ProcessingView progressProps={getProgressProps()} />;
       case "player":
-        return renderPlayerContent();
+        return <PlayerView asciiFrames={asciiFrames} currentFrameIndex={currentFrameIndex} />;
       case "docs":
-        return renderDocsContent();
+        return <DocsView />;
     }
   };
 
@@ -275,53 +155,12 @@ export default function Home() {
         <div className="relative h-full w-full font-mono text-white p-4 md:p-8 flex flex-col justify-between z-20 select-none">
           
           {/* Top Info Bar */}
-          <div className="flex flex-row justify-between items-start w-full">
-            {/* Top Left - Frame info with back button below for non-landing views */}
-            <div className="space-y-1 text-xs md:text-sm tracking-widest">
-              <p className={currentView === "player" ? "text-green-400" : "opacity-70"}>
-                {currentView === "player" ? `FRAME_${String(currentFrameIndex + 1).padStart(3, '0')}` : "FRAME_001"}
-              </p>
-              <p className="opacity-70">{currentView === "player" ? `${asciiFrames.length} TOTAL` : "ASCII_GEN"}</p>
-              <p className="opacity-70">00:00:00:00</p>
-              {currentView !== "landing" && (
-                <button
-                  onClick={() => {
-                    if (currentView === "player") handleRetry();
-                    navigateTo("landing");
-                  }}
-                  className="opacity-70 hover:opacity-100 transition-opacity flex items-center gap-1 mt-2"
-                >
-                  ← BACK
-                </button>
-              )}
-            </div>
-
-            {/* Top Center - View heading */}
-            <div className="absolute left-1/2 -translate-x-1/2 text-center">
-              {currentView === "landing" && (
-                <p className="text-xs md:text-sm tracking-widest opacity-60 font-mono">VIDEO → ASCII</p>
-              )}
-              {currentView === "upload" && (
-                <p className="text-xs md:text-sm tracking-widest opacity-60 font-mono">STEP 1: UPLOAD</p>
-              )}
-              {currentView === "processing" && (
-                <p className="text-xs md:text-sm tracking-widest text-green-400 font-mono animate-pulse">PROCESSING...</p>
-              )}
-              {currentView === "player" && (
-                <p className="text-xs md:text-sm tracking-widest opacity-60 font-mono">PLAYBACK</p>
-              )}
-              {currentView === "docs" && (
-                <p className="text-xs md:text-sm tracking-widest opacity-60 font-mono">DOCUMENTATION</p>
-              )}
-            </div>
-
-            {/* Top Right */}
-            <div className="text-right space-y-1 text-xs md:text-sm tracking-widest opacity-70">
-              <p>MODE</p>
-              <p>{currentView === "player" ? "PLAYBACK" : currentView === "processing" ? "PROCESSING" : currentView === "docs" ? "DOCS" : "CONVERT"}</p>
-              <p className="text-green-400 animate-pulse">// ONLINE</p>
-            </div>
-          </div>
+          <TopInfoBar
+            currentView={currentView}
+            currentFrameIndex={currentFrameIndex}
+            totalFrames={asciiFrames.length}
+            onBack={handleBack}
+          />
 
           {/* Center Content - Animated */}
           <div 
