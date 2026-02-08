@@ -142,7 +142,7 @@ export default function Home() {
 
   return (
     <div className="overflow-hidden h-screen w-screen bg-black">
-      <BackgroundMedia variant="dark" type="video" src="/demo2.mp4" shouldPlay={shouldPlayBgVideo}>
+      <BackgroundMedia variant="dark" type="video" src="/demo.mp4" shouldPlay={shouldPlayBgVideo}>
         <div className="relative h-full w-full font-mono text-white p-4 md:p-8 flex flex-col justify-between z-20 select-none">
           
           <TopInfoBar

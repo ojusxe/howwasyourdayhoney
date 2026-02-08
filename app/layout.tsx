@@ -15,6 +15,7 @@ const jetbrainsMono = JetBrains_Mono({
 })
 
 export const metadata: Metadata = {
+  metadataBase: new URL('http://howwasyourdayhoney.vercel.app'),
   title: 'How was your day honey?',
   description: 'Convert videos to ASCII frames and play them with a lightweight JS player',
   keywords: ['ASCII art', 'video conversion', 'frames', 'terminal art'],
@@ -40,7 +41,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'How was your day honey?',
     description: 'Convert videos to ASCII frames and play them with a lightweight JS player',
-    images: ['/opengraph-image.webp'],
+    images: ['/opengraph-image.webp', '/preview.webp'],
   },
 }
 

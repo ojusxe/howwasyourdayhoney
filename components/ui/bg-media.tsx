@@ -58,6 +58,9 @@ export const BackgroundMedia: React.FC<BackgroundMediaProps> = ({
   // Sync with shouldPlay prop
   useEffect(() => {
     if (type === "video" && mediaRef.current) {
+      // Set playback speed to 0.5x (slower)
+      mediaRef.current.playbackRate = 0.3
+      
       if (shouldPlay) {
         mediaRef.current.play().catch(() => {});
         setIsPlaying(true);
@@ -118,7 +121,7 @@ export const BackgroundMedia: React.FC<BackgroundMediaProps> = ({
       {/* Dim overlay when video is paused */}
       <div 
         className={`absolute inset-0 bg-black transition-opacity duration-500 z-10 pointer-events-none ${
-          isPlaying ? "opacity-0" : "opacity-50"
+          isPlaying ? "opacity-80" : "opacity-50"
         }`}
       />
       <div className="relative z-20 h-full w-full">
