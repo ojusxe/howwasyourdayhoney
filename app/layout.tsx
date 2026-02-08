@@ -41,7 +41,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'How was your day honey?',
     description: 'Convert videos to ASCII frames and play them with a lightweight JS player',
-    images: ['/opengraph-image.webp', '/preview.webp'],
+    images: ['/opengraph-image.webp'],
   },
 }
 
