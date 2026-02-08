@@ -6,11 +6,7 @@ import { useVideoProcessor } from "@/hooks/useVideoProcessor";
 import { BackgroundMedia } from "@/components/ui/bg-media";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { ViewState } from "@/lib/types";
-
-// View components
 import { LandingView, UploadView, ProcessingView, PlayerView, DocsView } from "@/components/views";
-
-// Layout components
 import { TopInfoBar } from "@/components/layout";
 
 export default function Home() {
@@ -105,18 +101,15 @@ export default function Home() {
     setCurrentFrameIndex(Math.max(0, Math.min(index, asciiFrames.length - 1)));
   };
 
-  // Formatting helper for date and time
   const timeString = date ? date.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false }) : '00:00';
   const dateString = date ? date.toLocaleDateString('en-US', { weekday: 'long', month: 'numeric', day: 'numeric', year: 'numeric' }) : 'Thursday, 1/1/1970';
 
-  // Animation classes based on slide direction
   const getSlideClasses = () => {
     return slideDirection === "left" 
       ? "animate-slide-in-right" 
       : "animate-slide-in-left";
   };
 
-  // Render the current view content
   const renderContent = () => {
     switch (currentView) {
       case "landing":
@@ -145,16 +138,13 @@ export default function Home() {
     }
   };
 
-  // Determine if background video should play based on current view
   const shouldPlayBgVideo = currentView === "landing" || currentView === "processing";
 
   return (
     <div className="overflow-hidden h-screen w-screen bg-black">
       <BackgroundMedia variant="dark" type="video" src="/demo2.mp4" shouldPlay={shouldPlayBgVideo}>
-        {/* Terminal Overlay UI */}
         <div className="relative h-full w-full font-mono text-white p-4 md:p-8 flex flex-col justify-between z-20 select-none">
           
-          {/* Top Info Bar */}
           <TopInfoBar
             currentView={currentView}
             currentFrameIndex={currentFrameIndex}
@@ -162,7 +152,6 @@ export default function Home() {
             onBack={handleBack}
           />
 
-          {/* Center Content - Animated */}
           <div 
             ref={contentRef}
             key={currentView}
@@ -185,9 +174,7 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Bottom Info Bar */}
           <div className="flex justify-between items-end w-full">
-            {/* Bottom Left: Date/Time or Download + Watermark */}
             <div className="space-y-2">
               {currentView === "player" ? (
                 <ClientDownloadButton
@@ -216,7 +203,6 @@ export default function Home() {
               </p>
             </div>
 
-            {/* Bottom Center: Player Controls (only in player view) */}
             {currentView === "player" && (
               <TooltipProvider delayDuration={200}>
                 <div className="absolute left-1/2 -translate-x-1/2 bottom-4 md:bottom-8 flex items-center gap-4">
@@ -289,7 +275,6 @@ export default function Home() {
               </TooltipProvider>
             )}
 
-            {/* Bottom Right: Docs Link or Convert Another */}
             {currentView === "player" ? (
               <button
                 onClick={() => {

@@ -13,7 +13,7 @@ export class ClientVideoProcessor {
     if (this.isLoaded) return;
 
     try {
-      // Load FFmpeg from CDN (most reliable)
+      // Load FFmpeg from CDN
       await this.ffmpeg.load();
       this.isLoaded = true;
     } catch (error) {

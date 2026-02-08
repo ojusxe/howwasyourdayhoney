@@ -93,7 +93,6 @@ export default function ProgressBar({
         </div>
       </div>
 
-      {/* Progress Bar - main progress indicator */}
       <div className="mb-4">
         <div className="w-full bg-white/20 rounded-full h-2">
           <div 

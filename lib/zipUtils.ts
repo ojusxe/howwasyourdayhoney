@@ -1,8 +1,6 @@
 import JSZip from 'jszip';
 import { ASCIIFrame, ZipPackageOptions } from './types';
 
-// ZIP Packager for ASCII frames
-
 export class ZipPackager {
   async createZip(
     frames: ASCIIFrame[],
@@ -10,7 +8,6 @@ export class ZipPackager {
   ): Promise<Blob> {
     const zip = new JSZip();
 
-    // add frames to the zip package
     await this.addFramesToZip(zip, frames, options.frameFormat);
 
     // include README if requested

@@ -29,7 +29,7 @@ export const metadata: Metadata = {
     type: 'website',
     images: [
       {
-        url: '/opengraph-image.png',
+        url: '/opengraph-image.webp',
         width: 1200,
         height: 630,
         alt: 'How was your day honey?',
@@ -40,7 +40,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'How was your day honey?',
     description: 'Convert videos to ASCII frames and play them with a lightweight JS player',
-    images: ['/opengraph-image.png'],
+    images: ['/opengraph-image.webp'],
   },
 }
 

@@ -26,13 +26,11 @@ export default function ClientDownloadButton({
     try {
       const zip = new JSZip();
 
-      // Add each frame as a text file
       frames.forEach((frame, index) => {
         const frameNumber = (index + 1).toString().padStart(4, '0');
         zip.file(`frame-${frameNumber}.txt`, frame);
       });
 
-      // Add README with instructions
       const readme = `# ASCII Animation Files
 
 This archive contains ${frames.length} ASCII art frames extracted from your video.
@@ -72,14 +70,12 @@ Enjoy your ASCII animation!
 
       zip.file('README.md', readme);
 
-      // Generate and download the zip
       const content = await zip.generateAsync({ 
         type: 'blob',
         compression: 'DEFLATE',
         compressionOptions: { level: 6 }
       });
       
-      // Create download link
       const url = URL.createObjectURL(content);
       const link = document.createElement('a');
       link.href = url;

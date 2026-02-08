@@ -15,7 +15,7 @@ export default function UploadForm({ onFileSelect, disabled, selectedFile }: Upl
 
     const file = files[0];
 
-    // Validate file type - support common video formats
+    // Validate file type
     const validFormats = ['video/mp4', 'video/webm', 'video/avi', 'video/mov', 'video/quicktime'];
     if (!validFormats.includes(file.type)) {
       throw new Error('Invalid file format. Please upload MP4, WebM, AVI, or MOV files.');

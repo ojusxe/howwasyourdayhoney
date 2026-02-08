@@ -135,7 +135,6 @@ export default function ErrorDisplay({ error, onRetry, onDismiss }: ErrorDisplay
             {error.message}
           </p>
 
-          {/* Error Details */}
           {error.details && (
             <details className="mb-4">
               <summary className="text-sm text-gray-600 cursor-pointer hover:text-gray-800">
@@ -147,7 +146,6 @@ export default function ErrorDisplay({ error, onRetry, onDismiss }: ErrorDisplay
             </details>
           )}
 
-          {/* Suggestions */}
           <div className="mb-4">
             <h4 className="text-sm font-medium text-gray-800 mb-2">Suggestions:</h4>
             <ul className="text-sm text-gray-600 space-y-1">
@@ -160,7 +158,6 @@ export default function ErrorDisplay({ error, onRetry, onDismiss }: ErrorDisplay
             </ul>
           </div>
 
-          {/* Action Buttons */}
           <div className="flex space-x-3">
             {shouldShowRetry() && onRetry && (
               <button
@@ -179,7 +176,6 @@ export default function ErrorDisplay({ error, onRetry, onDismiss }: ErrorDisplay
             </button>
           </div>
 
-          {/* Timestamp */}
           <div className="mt-4 pt-4 border-t border-gray-200">
             <p className="text-xs text-gray-500">
               Error occurred at {error.timestamp.toLocaleString()}

@@ -1,5 +1,3 @@
-
-// ASCII frame data structure
 export interface ASCIIFrame {
   index: number;
   timestamp: number;
@@ -9,7 +7,6 @@ export interface ASCIIFrame {
   colorData?: ColorPixel[][];
 }
 
-// Video processing settings
 export interface VideoProcessingSettings {
   contrast: number;
   brightness: number;
@@ -18,10 +15,8 @@ export interface VideoProcessingSettings {
   customCharacterSet: string;
 }
 
-// View state for app navigation
 export type ViewState = "landing" | "upload" | "processing" | "player" | "docs";
 
-// Color pixel for colored ASCII output
 export interface ColorPixel {
   char: string;
   color: string;
@@ -29,7 +24,6 @@ export interface ColorPixel {
   colorClass?: string;
 }
 
-// Frame extracted from video source
 export interface ExtractedFrame {
   index: number;
   timestamp: number;
@@ -38,14 +32,12 @@ export interface ExtractedFrame {
   height: number;
 }
 
-// ZIP packaging options
 export interface ZipPackageOptions {
   includeReadme: boolean;
   readmeContent?: string;
   frameFormat: 'txt' | 'json';
 }
 
-// Error handling types
 export enum ErrorType {
   VALIDATION_ERROR = 'VALIDATION_ERROR',
   PROCESSING_ERROR = 'PROCESSING_ERROR',
@@ -61,7 +53,6 @@ export interface APIError {
   timestamp: Date;
 }
 
-// Component prop interfaces
 export interface ProgressBarProps {
   progress: number;
   currentFrame: number;
@@ -76,11 +67,9 @@ export interface ErrorDisplayProps {
   onDismiss: () => void;
 }
 
-// Application constants
-export const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB - increased for better video support
-export const MAX_DURATION = 30; // 30 seconds - more flexible for various content
-export const DEFAULT_FPS = 24; // Standard 24 FPS for smooth animation
+export const MAX_FILE_SIZE = 50 * 1024 * 1024;
+export const MAX_DURATION = 30;
+export const DEFAULT_FPS = 24;
 
-// Optimized character set for maximum visual accuracy
 // Ordered from lightest to darkest for precise luminance mapping
 export const OPTIMIZED_CHARACTER_SET = ' .\'`^",:;Il!i><~+_-?][}{1)(|\\/tfjrxnuvczXYUJCLQ0OZmwqpdbkhao*#MW&8%B@$';
