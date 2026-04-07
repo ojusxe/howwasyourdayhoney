@@ -15,7 +15,7 @@ export interface VideoProcessingSettings {
   customCharacterSet: string;
 }
 
-export type ViewState = "landing" | "upload" | "processing" | "player" | "docs";
+export type ViewState = "landing" | "demo" | "upload" | "processing" | "player" | "docs";
 
 export interface ColorPixel {
   char: string;

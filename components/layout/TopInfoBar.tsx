@@ -19,13 +19,13 @@ export default function TopInfoBar({
     <div className="flex flex-row justify-between items-start w-full">
       {/* Top Left - Frame info with back button below for non-landing views */}
       <div className="space-y-1 text-xs md:text-sm tracking-widest">
-        <p className={currentView === "player" ? "text-green-400" : "opacity-70"}>
-          {currentView === "player"
+        <p className={currentView === "player" || currentView === "demo" ? "text-green-400" : "opacity-70"}>
+          {currentView === "player" || currentView === "demo"
             ? `FRAME_${String(currentFrameIndex + 1).padStart(3, "0")}`
             : "FRAME_001"}
         </p>
         <p className="opacity-70">
-          {currentView === "player" ? `${totalFrames} TOTAL` : "ASCII_GEN"}
+          {currentView === "player" || currentView === "demo" ? `${totalFrames} TOTAL` : "ASCII_GEN"}
         </p>
         <p className="opacity-70">00:00:00:00</p>
         {currentView !== "landing" && (
@@ -40,9 +40,10 @@ export default function TopInfoBar({
 
       {/* Top Center - View heading */}
       <div className="absolute left-1/2 -translate-x-1/2 text-center">
-        {currentView === "landing" && (
+        
+        {currentView === "demo" && (
           <p className="text-xs md:text-sm tracking-widest opacity-60 font-mono">
-            VIDEO → ASCII
+            LIVE DEMO
           </p>
         )}
         {currentView === "upload" && (
@@ -73,6 +74,8 @@ export default function TopInfoBar({
         <p>
           {currentView === "player"
             ? "PLAYBACK"
+            : currentView === "demo"
+            ? "DEMO"
             : currentView === "processing"
             ? "PROCESSING"
             : currentView === "docs"

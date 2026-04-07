@@ -2,9 +2,10 @@
 
 interface LandingViewProps {
   onNavigateToUpload: () => void;
+  onNavigateToDemo: () => void;
 }
 
-export default function LandingView({ onNavigateToUpload }: LandingViewProps) {
+export default function LandingView({ onNavigateToUpload, onNavigateToDemo }: LandingViewProps) {
   return (
     <div className="space-y-6">
       <div className="space-y-2">
@@ -21,12 +22,21 @@ export default function LandingView({ onNavigateToUpload }: LandingViewProps) {
         Client-side video processing. No uploads. Pure browser magic.
       </p>
 
-      <button
-        onClick={onNavigateToUpload}
-        className="group relative px-8 py-4 border border-white/80 bg-black/30 backdrop-blur-sm text-white uppercase tracking-[0.2em] text-sm font-semibold hover:bg-white hover:text-black transition-all duration-300 font-mono"
-      >
-        Start Converting
-      </button>
+      <div className="flex flex-wrap items-center gap-3">
+        <button
+          onClick={onNavigateToUpload}
+          className="group relative px-8 py-4 border border-white/80 bg-black/30 backdrop-blur-sm text-white uppercase tracking-[0.2em] text-sm font-semibold hover:bg-white hover:text-black transition-all duration-300 font-mono"
+        >
+          Start Converting
+        </button>
+
+        <button
+          onClick={onNavigateToDemo}
+          className="group relative px-8 py-4 border border-green-400/60 bg-green-500/10 text-green-300 uppercase tracking-[0.2em] text-sm font-semibold hover:bg-green-400 hover:text-black transition-all duration-300 font-mono"
+        >
+          View Demo
+        </button>
+      </div>
     </div>
   );
 }

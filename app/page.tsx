@@ -6,14 +6,30 @@ import { useVideoProcessor } from "@/hooks/useVideoProcessor";
 import { BackgroundMedia } from "@/components/ui/bg-media";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { ViewState } from "@/lib/types";
-import { LandingView, UploadView, ProcessingView, PlayerView, DocsView } from "@/components/views";
+import { extractFrames } from "@/lib/clientVideoProcessor";
+import { convertFramesToAscii } from "@/lib/clientAsciiConverter";
+import { OPTIMIZED_CHARACTER_SET } from "@/lib/types";
+import { LandingView, UploadView, ProcessingView, PlayerView, DocsView, DemoView } from "@/components/views";
 import { TopInfoBar } from "@/components/layout";
+
+const DEMO_VIDEO_PATH = "/video.mp4";
+const DEMO_CACHE_KEY = "demo-ascii-frames-v1";
+const DEMO_FPS = 24;
 
 export default function Home() {
   const [currentView, setCurrentView] = useState<ViewState>("landing");
   const [slideDirection, setSlideDirection] = useState<"left" | "right">("left");
   const [date, setDate] = useState<Date | null>(null);
   const contentRef = useRef<HTMLDivElement>(null);
+
+  // Demo state
+  const [demoStatus, setDemoStatus] = useState<"idle" | "processing" | "ready" | "error">("idle");
+  const [demoProgress, setDemoProgress] = useState(0);
+  const [demoFrames, setDemoFrames] = useState<string[]>([]);
+  const [demoFrameIndex, setDemoFrameIndex] = useState(0);
+  const [demoIsPlaying, setDemoIsPlaying] = useState(true);
+  const [demoError, setDemoError] = useState<string | null>(null);
+  const demoIntervalRef = useRef<NodeJS.Timeout | null>(null);
   
   // Player state
   const [currentFrameIndex, setCurrentFrameIndex] = useState(0);
@@ -47,7 +63,7 @@ export default function Home() {
 
   // Navigate to a view with animation
   const navigateTo = (view: ViewState) => {
-    const viewOrder: ViewState[] = ["landing", "upload", "processing", "player", "docs"];
+    const viewOrder: ViewState[] = ["landing", "demo", "upload", "processing", "player", "docs"];
     const currentIndex = viewOrder.indexOf(currentView);
     const targetIndex = viewOrder.indexOf(view);
     setSlideDirection(targetIndex > currentIndex ? "left" : "right");
@@ -95,10 +111,115 @@ export default function Home() {
     };
   }, [currentView, isPlaying, asciiFrames.length]);
 
+  // Load demo frames when entering demo view
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadDemo = async () => {
+      if (currentView !== "demo") return;
+      if (demoStatus === "ready" && demoFrames.length > 0) return;
+
+      try {
+        setDemoStatus("processing");
+        setDemoProgress(0);
+        setDemoError(null);
+
+        const cachedFrames = localStorage.getItem(DEMO_CACHE_KEY);
+        if (cachedFrames) {
+          const parsed = JSON.parse(cachedFrames) as string[];
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            if (!cancelled) {
+              setDemoFrames(parsed);
+              setDemoFrameIndex(0);
+              setDemoIsPlaying(true);
+              setDemoStatus("ready");
+              setDemoProgress(100);
+            }
+            return;
+          }
+        }
+
+        const response = await fetch(DEMO_VIDEO_PATH);
+        if (!response.ok) throw new Error("Failed to load demo video.");
+        const videoBlob = await response.blob();
+        const demoFile = new File([videoBlob], "video.mp4", { type: "video/mp4" });
+
+        const frameBlobs = await extractFrames(demoFile, (extractProgress) => {
+          if (!cancelled) {
+            setDemoProgress(Math.round(extractProgress * 0.7));
+          }
+        });
+
+        const generatedFrames = await convertFramesToAscii(
+          frameBlobs,
+          {
+            width: 92,
+            contrast: 1.2,
+            brightness: 0,
+            characterSet: OPTIMIZED_CHARACTER_SET,
+          },
+          (current, total) => {
+            if (!cancelled) {
+              const conversionProgress = Math.round((current / total) * 30);
+              setDemoProgress(70 + conversionProgress);
+            }
+          }
+        );
+
+        if (!generatedFrames.length) throw new Error("No ASCII frames were generated for the demo.");
+
+        localStorage.setItem(DEMO_CACHE_KEY, JSON.stringify(generatedFrames));
+        if (!cancelled) {
+          setDemoFrames(generatedFrames);
+          setDemoFrameIndex(0);
+          setDemoIsPlaying(true);
+          setDemoStatus("ready");
+          setDemoProgress(100);
+        }
+      } catch (err) {
+        if (!cancelled) {
+          setDemoError(err instanceof Error ? err.message : "Failed to load demo.");
+          setDemoStatus("error");
+        }
+      }
+    };
+
+    loadDemo();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [currentView, demoStatus, demoFrames.length]);
+
+  // Demo animation loop
+  useEffect(() => {
+    if (currentView === "demo" && demoStatus === "ready" && demoIsPlaying && demoFrames.length > 1) {
+      demoIntervalRef.current = setInterval(() => {
+        setDemoFrameIndex((prev) => (prev + 1) % demoFrames.length);
+      }, 1000 / DEMO_FPS);
+    } else if (demoIntervalRef.current) {
+      clearInterval(demoIntervalRef.current);
+      demoIntervalRef.current = null;
+    }
+
+    return () => {
+      if (demoIntervalRef.current) {
+        clearInterval(demoIntervalRef.current);
+        demoIntervalRef.current = null;
+      }
+    };
+  }, [currentView, demoStatus, demoIsPlaying, demoFrames.length]);
+
   // Player controls
   const togglePlayback = () => setIsPlaying(!isPlaying);
   const goToFrame = (index: number) => {
     setCurrentFrameIndex(Math.max(0, Math.min(index, asciiFrames.length - 1)));
+  };
+
+  // Demo controls
+  const toggleDemoPlayback = () => setDemoIsPlaying(!demoIsPlaying);
+  const goToDemoFrame = (index: number) => {
+    setDemoFrameIndex(Math.max(0, Math.min(index, demoFrames.length - 1)));
   };
 
   const timeString = date ? date.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false }) : '00:00';
@@ -113,7 +234,17 @@ export default function Home() {
   const renderContent = () => {
     switch (currentView) {
       case "landing":
-        return <LandingView onNavigateToUpload={() => navigateTo("upload")} />;
+        return <LandingView onNavigateToUpload={() => navigateTo("upload")} onNavigateToDemo={() => navigateTo("demo")} />;
+      case "demo":
+        return (
+          <DemoView
+            status={demoStatus}
+            progress={demoProgress}
+            error={demoError}
+            videoSrc={DEMO_VIDEO_PATH}
+            currentFrame={demoFrames[demoFrameIndex] || ""}
+          />
+        );
       case "upload":
         return (
           <UploadView
@@ -142,13 +273,13 @@ export default function Home() {
 
   return (
     <div className="overflow-hidden h-screen w-screen bg-black">
-      <BackgroundMedia variant="dark" type="video" src="https://ldrrpjsierqtrdkobhjh.supabase.co/storage/v1/object/public/projects/demo.mp4" shouldPlay={shouldPlayBgVideo}>
+      <BackgroundMedia variant="dark" type="video" src="https://res.cloudinary.com/dyovwd6hx/video/upload/v1771779331/demo_ovrbtt.mp4" shouldPlay={shouldPlayBgVideo}>
         <div className="relative h-full w-full font-mono text-white p-4 md:p-8 flex flex-col justify-between z-20 select-none">
           
           <TopInfoBar
             currentView={currentView}
-            currentFrameIndex={currentFrameIndex}
-            totalFrames={asciiFrames.length}
+            currentFrameIndex={currentView === "demo" ? demoFrameIndex : currentFrameIndex}
+            totalFrames={currentView === "demo" ? demoFrames.length : asciiFrames.length}
             onBack={handleBack}
           />
 
@@ -166,6 +297,8 @@ export default function Home() {
                 ? "" 
                 : currentView === "player" 
                 ? "w-full h-full" 
+                : currentView === "demo"
+                ? "w-full h-full"
                 : currentView === "processing"
                 ? "w-full max-w-lg flex items-center justify-center"
                 : "w-full max-w-2xl"
@@ -197,9 +330,6 @@ export default function Home() {
               <p className="text-[10px] text-sm font-mono tracking-wide opacity-80">
                 <span className="text-white">built by</span>{" "}
                 <span className="text-green-400"><a href="https://ojus.fyi" target="_blank" rel="noopener noreferrer">ojus</a></span>{" "}
-                <span className="text-white">for</span>{" "}
-                <span className="text-pink-400"><a href="https://clueso.io" target="_blank" rel="noopener noreferrer">clueso</a></span>{" "}
-                <span className="text-red-400">&lt;3</span>
               </p>
             </div>
 
@@ -275,6 +405,83 @@ export default function Home() {
               </TooltipProvider>
             )}
 
+            {currentView === "demo" && demoStatus === "ready" && (
+              <TooltipProvider delayDuration={200}>
+                <div className="absolute left-1/2 -translate-x-1/2 bottom-4 md:bottom-8 flex flex-col items-center gap-2">
+                  <p className="text-xs md:text-sm tracking-widest text-white/80 uppercase text-center">
+                    Frame {String(demoFrameIndex + 1).padStart(3, "0")} / {String(demoFrames.length).padStart(3, "0")} at 24 FPS
+                  </p>
+                  <div className="flex items-center gap-4">
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button
+                        onClick={() => goToDemoFrame(0)}
+                        className="px-3 py-2 text-sm bg-white/10 hover:bg-white/20 text-white/70 rounded transition-colors font-mono"
+                      >
+                        |&lt;
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent side="top">First Frame</TooltipContent>
+                  </Tooltip>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button
+                        onClick={() => goToDemoFrame(demoFrameIndex - 1)}
+                        className="px-3 py-2 text-sm bg-white/10 hover:bg-white/20 text-white/70 rounded transition-colors font-mono disabled:opacity-30"
+                        disabled={demoFrameIndex === 0}
+                      >
+                        &lt;
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent side="top">Previous Frame</TooltipContent>
+                  </Tooltip>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button
+                        onClick={toggleDemoPlayback}
+                        className="flex items-center justify-center w-12 h-12 bg-green-500/20 border border-green-500/50 hover:bg-green-500 text-green-400 hover:text-black rounded-full transition-colors"
+                      >
+                        {demoIsPlaying ? (
+                          <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z"/>
+                          </svg>
+                        ) : (
+                          <svg className="w-5 h-5 ml-0.5" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M8 5v14l11-7z"/>
+                          </svg>
+                        )}
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent side="top">{demoIsPlaying ? "Pause" : "Play"}</TooltipContent>
+                  </Tooltip>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button
+                        onClick={() => goToDemoFrame(demoFrameIndex + 1)}
+                        className="px-3 py-2 text-sm bg-white/10 hover:bg-white/20 text-white/70 rounded transition-colors font-mono disabled:opacity-30"
+                        disabled={demoFrameIndex === demoFrames.length - 1}
+                      >
+                        &gt;
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent side="top">Next Frame</TooltipContent>
+                  </Tooltip>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button
+                        onClick={() => goToDemoFrame(demoFrames.length - 1)}
+                        className="px-3 py-2 text-sm bg-white/10 hover:bg-white/20 text-white/70 rounded transition-colors font-mono"
+                      >
+                        &gt;|
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent side="top">Last Frame</TooltipContent>
+                  </Tooltip>
+                  </div>
+                </div>
+              </TooltipProvider>
+            )}
+
             {currentView === "player" ? (
               <button
                 onClick={() => {
@@ -291,6 +498,13 @@ export default function Home() {
                 className="px-4 py-2 border border-white/60 bg-black/40 backdrop-blur-sm text-white text-xs md:text-sm tracking-widest uppercase hover:bg-white hover:text-black transition-all duration-300 font-mono"
               >
                 ← Back to Home
+              </button>
+            ) : currentView === "demo" ? (
+              <button
+                onClick={() => navigateTo("upload")}
+                className="px-4 py-2 border border-white/60 bg-black/40 backdrop-blur-sm text-white text-xs md:text-sm tracking-widest uppercase hover:bg-white hover:text-black transition-all duration-300 font-mono"
+              >
+                Try Converter →
               </button>
             ) : currentView === "processing" ? (
               <div className="text-xs text-gray-400 font-mono opacity-60">Please wait...</div>
